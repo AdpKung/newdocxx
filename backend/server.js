@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
+const path = require('path');
 const { checkDocx } = require('./checker');
 
 const app = express();
@@ -143,7 +144,13 @@ app.get('/api/history', (req, res) => {
     });
 });
 
-const PORT = 8000;
+// --- DEPLOYMENT: Serve Frontend ---
+app.use(express.static(path.join(__dirname, '../dist')));
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../dist/index.html'));
+});
+
+const PORT = process.env.PORT || 8000;
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Backend API running on http://localhost:${PORT}`);
+    console.log(`Backend API running on port ${PORT}`);
 });
