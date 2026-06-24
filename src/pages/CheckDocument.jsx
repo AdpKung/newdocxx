@@ -247,46 +247,142 @@ const CheckDocument = () => {
                   </div>
                   
                   <div className="checklist-grid">
-                    {/* หมวดหมู่: โครงสร้างหัวข้อ */}
+                    {/* หมวดหมู่: บทที่ 1 */}
                     <div className="checklist-group">
-                      <h4><FileTextIcon /> โครงสร้างและเนื้อหา (บทที่ 1-5)</h4>
-                      
-                      {isError ? (
-                        <div className="check-item error">
-                          <AlertCircle size={20} className="flex-shrink-0" /> 
-                          <div>
-                            <span>ระบบเกิดข้อผิดพลาด (ไม่สามารถอ่านไฟล์ได้)</span>
-                            <p className="item-detail">{errorMessage}</p>
-                          </div>
-                        </div>
-                      ) : isEmpty ? (
-                        <div className="check-item error">
-                          <AlertCircle size={20} className="flex-shrink-0" /> 
-                          <div>
-                            <span>ตรวจไม่พบเนื้อหาใดๆ ในเอกสาร</span>
-                            <p className="item-detail">เอกสารที่คุณอัปโหลดเป็นหน้ากระดาษเปล่า หรือมีข้อความน้อยเกินไป ไม่สามารถวิเคราะห์โครงสร้าง 5 บทได้</p>
-                          </div>
+                      <h4><FileTextIcon /> บทที่ 1 บทนำ</h4>
+                      {(isEmpty || isError) ? (
+                        <div className="check-item warning">
+                          <AlertCircle size={20} className="flex-shrink-0" />
+                          <div><span>ไม่สามารถตรวจสอบบทที่ 1 ได้</span></div>
                         </div>
                       ) : (
                         <>
-                          <div className={`check-item ${chaptersFound >= 5 ? 'success' : 'error'}`}>
-                            {chaptersFound >= 5 ? <CheckCircle2 size={20} className="flex-shrink-0" /> : <AlertCircle size={20} className="flex-shrink-0" />}
+                          <div className={`check-item ${resultData?.details?.chapters_list?.chap1 ? 'success' : 'error'}`}>
+                            {resultData?.details?.chapters_list?.chap1 ? <CheckCircle2 size={20} className="flex-shrink-0" /> : <AlertCircle size={20} className="flex-shrink-0" />}
                             <div>
-                              <span>{chaptersFound >= 5 ? 'ตรวจพบครบ 5 บทหลัก' : `ตรวจพบโครงสร้างเพียง ${chaptersFound} บท`}</span>
-                              <p className="item-detail">การตรวจหาคำว่า "บทที่ 1" ถึง "บทที่ 5" จากในไฟล์ที่อัปโหลด</p>
+                              <span>{resultData?.details?.chapters_list?.chap1 ? 'ตรวจพบเนื้อหา บทที่ 1' : 'ไม่พบเนื้อหา บทที่ 1'}</span>
+                              {!resultData?.details?.chapters_list?.chap1 && (
+                                <p className="item-detail" style={{color: '#d32f2f', fontWeight: 'bold'}}>
+                                  วิธีแก้ไข: กรุณาเพิ่มหัวข้อ "บทที่ 1" หรือ "บทนำ" ลงในเอกสารของคุณ
+                                </p>
+                              )}
                             </div>
                           </div>
-                          
-                          {chaptersFound > 0 && (
-                            <div className="check-item error">
-                              <AlertCircle size={20} className="flex-shrink-0" /> 
-                              <div>
-                                <span>หัวข้อย่อยบทที่ 1 ไม่ครบถ้วน</span>
-                                <p className="item-detail">ขาดหัวข้อ: "นิยามศัพท์เฉพาะ" และ "ประโยชน์ที่คาดว่าจะได้รับ"</p>
-                              </div>
+                          {resultData?.details?.chapters_list?.chap1 && resultData.subtopics && (
+                            <div className="subtopic-checks" style={{ paddingLeft: '20px', borderLeft: '2px solid #eee', marginLeft: '10px' }}>
+                              <h5 style={{ margin: '10px 0', color: '#555' }}>ผลการตรวจหัวข้อย่อย บทที่ 1:</h5>
+                              {Object.values(resultData.subtopics).map((topic, idx) => (
+                                <div key={idx} className={`check-item ${topic.found && topic.isBold ? 'success' : 'error'}`} style={{ marginBottom: '8px', padding: '10px' }}>
+                                  {topic.found && topic.isBold ? <CheckCircle2 size={16} className="flex-shrink-0" /> : <AlertCircle size={16} className="flex-shrink-0" />}
+                                  <div>
+                                    <span style={{ fontSize: '0.95rem' }}>หัวข้อ "{topic.label}"</span>
+                                    <p className="item-detail" style={{ fontSize: '0.85rem', marginTop: '4px' }}>
+                                      {!topic.found ? (
+                                        <span style={{color: '#d32f2f', fontWeight: 'bold'}}>วิธีแก้ไข: ขาดหัวข้อนี้ กรุณาพิมพ์ "{topic.label}" ลงในเอกสารและทำตัวหนา</span>
+                                      ) : (!topic.isBold ? (
+                                        <span style={{color: '#d32f2f', fontWeight: 'bold'}}>วิธีแก้ไข: พบหัวข้อแล้ว แต่ลืมทำตัวหนา กรุณาคลุมดำข้อความและกด Ctrl+B (ทำตัวหนา)</span>
+                                      ) : (
+                                        <span style={{color: '#2e7d32'}}>พบหัวข้อและตั้งเป็นตัวหนาถูกต้องแล้ว</span>
+                                      ))}
+                                    </p>
+                                  </div>
+                                </div>
+                              ))}
                             </div>
                           )}
                         </>
+                      )}
+                    </div>
+
+                    {/* หมวดหมู่: บทที่ 2 */}
+                    <div className="checklist-group">
+                      <h4><FileTextIcon /> บทที่ 2 เอกสารและงานวิจัยที่เกี่ยวข้อง</h4>
+                      {(isEmpty || isError) ? (
+                        <div className="check-item warning">
+                          <AlertCircle size={20} className="flex-shrink-0" />
+                          <div><span>ไม่สามารถตรวจสอบบทที่ 2 ได้</span></div>
+                        </div>
+                      ) : (
+                        <div className={`check-item ${resultData?.details?.chapters_list?.chap2 ? 'success' : 'error'}`}>
+                          {resultData?.details?.chapters_list?.chap2 ? <CheckCircle2 size={20} className="flex-shrink-0" /> : <AlertCircle size={20} className="flex-shrink-0" />}
+                          <div>
+                            <span>{resultData?.details?.chapters_list?.chap2 ? 'ตรวจพบเนื้อหา บทที่ 2' : 'ไม่พบเนื้อหา บทที่ 2'}</span>
+                            {!resultData?.details?.chapters_list?.chap2 && (
+                              <p className="item-detail" style={{color: '#d32f2f', fontWeight: 'bold'}}>
+                                วิธีแก้ไข: กรุณาเพิ่มหัวข้อ "บทที่ 2" ลงในเอกสารของคุณ
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* หมวดหมู่: บทที่ 3 */}
+                    <div className="checklist-group">
+                      <h4><FileTextIcon /> บทที่ 3 วิธีดำเนินการโครงงาน</h4>
+                      {(isEmpty || isError) ? (
+                        <div className="check-item warning">
+                          <AlertCircle size={20} className="flex-shrink-0" />
+                          <div><span>ไม่สามารถตรวจสอบบทที่ 3 ได้</span></div>
+                        </div>
+                      ) : (
+                        <div className={`check-item ${resultData?.details?.chapters_list?.chap3 ? 'success' : 'error'}`}>
+                          {resultData?.details?.chapters_list?.chap3 ? <CheckCircle2 size={20} className="flex-shrink-0" /> : <AlertCircle size={20} className="flex-shrink-0" />}
+                          <div>
+                            <span>{resultData?.details?.chapters_list?.chap3 ? 'ตรวจพบเนื้อหา บทที่ 3' : 'ไม่พบเนื้อหา บทที่ 3'}</span>
+                            {!resultData?.details?.chapters_list?.chap3 && (
+                              <p className="item-detail" style={{color: '#d32f2f', fontWeight: 'bold'}}>
+                                วิธีแก้ไข: กรุณาเพิ่มหัวข้อ "บทที่ 3" ลงในเอกสารของคุณ
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* หมวดหมู่: บทที่ 4 */}
+                    <div className="checklist-group">
+                      <h4><FileTextIcon /> บทที่ 4 ผลการดำเนินงาน</h4>
+                      {(isEmpty || isError) ? (
+                        <div className="check-item warning">
+                          <AlertCircle size={20} className="flex-shrink-0" />
+                          <div><span>ไม่สามารถตรวจสอบบทที่ 4 ได้</span></div>
+                        </div>
+                      ) : (
+                        <div className={`check-item ${resultData?.details?.chapters_list?.chap4 ? 'success' : 'error'}`}>
+                          {resultData?.details?.chapters_list?.chap4 ? <CheckCircle2 size={20} className="flex-shrink-0" /> : <AlertCircle size={20} className="flex-shrink-0" />}
+                          <div>
+                            <span>{resultData?.details?.chapters_list?.chap4 ? 'ตรวจพบเนื้อหา บทที่ 4' : 'ไม่พบเนื้อหา บทที่ 4'}</span>
+                            {!resultData?.details?.chapters_list?.chap4 && (
+                              <p className="item-detail" style={{color: '#d32f2f', fontWeight: 'bold'}}>
+                                วิธีแก้ไข: กรุณาเพิ่มหัวข้อ "บทที่ 4" ลงในเอกสารของคุณ
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* หมวดหมู่: บทที่ 5 */}
+                    <div className="checklist-group">
+                      <h4><FileTextIcon /> บทที่ 5 สรุปผลและข้อเสนอแนะ</h4>
+                      {(isEmpty || isError) ? (
+                        <div className="check-item warning">
+                          <AlertCircle size={20} className="flex-shrink-0" />
+                          <div><span>ไม่สามารถตรวจสอบบทที่ 5 ได้</span></div>
+                        </div>
+                      ) : (
+                        <div className={`check-item ${resultData?.details?.chapters_list?.chap5 ? 'success' : 'error'}`}>
+                          {resultData?.details?.chapters_list?.chap5 ? <CheckCircle2 size={20} className="flex-shrink-0" /> : <AlertCircle size={20} className="flex-shrink-0" />}
+                          <div>
+                            <span>{resultData?.details?.chapters_list?.chap5 ? 'ตรวจพบเนื้อหา บทที่ 5' : 'ไม่พบเนื้อหา บทที่ 5'}</span>
+                            {!resultData?.details?.chapters_list?.chap5 && (
+                              <p className="item-detail" style={{color: '#d32f2f', fontWeight: 'bold'}}>
+                                วิธีแก้ไข: กรุณาเพิ่มหัวข้อ "บทที่ 5" ลงในเอกสารของคุณ
+                              </p>
+                            )}
+                          </div>
+                        </div>
                       )}
                     </div>
 

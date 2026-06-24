@@ -81,13 +81,15 @@ app.post('/api/check', upload.single('file'), (req, res) => {
         details: {
             structure_pass: structure_pass,
             chapters_found: chaptersFound,
+            chapters_list: result.chapters,
             font_pass: font_pass,
             font_details: result.formatting.fontDetails,
             fontsize_pass: fontsize_pass,
             fontsize_details: result.formatting.sizeDetails,
             margin_pass: margin_pass,
             margin_details: result.formatting.marginDetails
-        }
+        },
+        subtopics: result.subtopics
     };
 
     if (userId) {

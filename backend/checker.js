@@ -18,12 +18,86 @@ function checkDocx(buffer) {
         const parser = new DOMParser();
         const docDom = parser.parseFromString(documentXml, 'text/xml');
         
-        // 1. Text Extraction & Chapter check
-        const texts = docDom.getElementsByTagName('w:t');
+        // 1. Text Extraction & Chapter check (Paragraph level)
+        const paragraphs = docDom.getElementsByTagName('w:p');
         let fullText = '';
-        for (let i = 0; i < texts.length; i++) {
-            if (texts[i].textContent) {
-                fullText += texts[i].textContent;
+        
+        let subtopicsData = {
+            bg: { found: false, isBold: false, label: 'ความเป็นมาของโครงงาน' },
+            obj: { found: false, isBold: false, label: 'วัตถุประสงค์ของโครงงาน' },
+            scope: { found: false, isBold: false, label: 'ขอบเขตของโครงงาน' },
+            benefit: { found: false, isBold: false, label: 'ประโยชน์ที่ได้รับ' },
+            method: { found: false, isBold: false, label: 'วิธีการดำเนินการ' },
+            vocab: { found: false, isBold: false, label: 'นิยามศัพท์' }
+        };
+
+        const topicsToFind = [
+            { id: 'bg', match: ['ความเป็นมาของโครงงาน', 'ความเป็นมาและความสำคัญ'] },
+            { id: 'obj', match: ['วัตถุประสงค์ของโครงงาน', 'วัตถุประสงค์'] },
+            { id: 'scope', match: ['ขอบเขตของโครงงาน', 'ขอบเขต'] },
+            { id: 'benefit', match: ['ประโยชน์ที่ได้รับ', 'ประโยชน์ที่คาดว่าจะได้รับ'] },
+            { id: 'method', match: ['วิธีการดำเนินการ', 'วิธีดำเนินการ'] },
+            { id: 'vocab', match: ['นิยามศัพท์'] }
+        ];
+
+        for (let p = 0; p < paragraphs.length; p++) {
+            const pNode = paragraphs[p];
+            const runs = pNode.getElementsByTagName('w:r');
+            let pText = '';
+            let pBold = false;
+            
+            // Check if paragraph style makes it bold
+            const pPr = pNode.getElementsByTagName('w:pPr')[0];
+            if (pPr) {
+                const pRPr = pPr.getElementsByTagName('w:rPr')[0];
+                if (pRPr && pRPr.getElementsByTagName('w:b').length > 0) {
+                    pBold = true;
+                }
+            }
+
+            for (let r = 0; r < runs.length; r++) {
+                const rNode = runs[r];
+                const tNodes = rNode.getElementsByTagName('w:t');
+                for(let t=0; t<tNodes.length; t++) {
+                    if (tNodes[t] && tNodes[t].textContent) {
+                        pText += tNodes[t].textContent;
+                    }
+                }
+            }
+            
+            const cleanPText = pText.replace(/\s+/g, '');
+            fullText += pText + ' ';
+
+            for (let topic of topicsToFind) {
+                let isMatch = false;
+                for (let keyword of topic.match) {
+                    if (cleanPText.includes(keyword)) {
+                        isMatch = true;
+                        break;
+                    }
+                }
+
+                if (isMatch) {
+                    subtopicsData[topic.id].found = true;
+                    let runBold = false;
+                    for (let r = 0; r < runs.length; r++) {
+                        const rNode = runs[r];
+                        const tNodes = rNode.getElementsByTagName('w:t');
+                        let hasText = false;
+                        for(let t=0; t<tNodes.length; t++) {
+                            if (tNodes[t] && tNodes[t].textContent.trim().length > 0) hasText = true;
+                        }
+                        if (hasText) {
+                            const rPr = rNode.getElementsByTagName('w:rPr')[0];
+                            if (rPr && rPr.getElementsByTagName('w:b').length > 0) {
+                                runBold = true;
+                            }
+                        }
+                    }
+                    if (pBold || runBold) {
+                        subtopicsData[topic.id].isBold = true;
+                    }
+                }
             }
         }
         
@@ -64,25 +138,40 @@ function checkDocx(buffer) {
 
         const runs = docDom.getElementsByTagName('w:r');
         for (let i = 0; i < runs.length; i++) {
-            const rPr = runs[i].getElementsByTagName('w:rPr')[0];
-            if (rPr) {
-                // Check Font
-                const rFonts = rPr.getElementsByTagName('w:rFonts')[0];
-                if (rFonts) {
-                    const ascii = rFonts.getAttribute('w:ascii');
-                    const hAnsi = rFonts.getAttribute('w:hAnsi');
-                    const fontName = ascii || hAnsi;
-                    if (fontName && !fontName.includes('TH Sarabun')) {
-                        foundFonts.add(fontName);
-                    }
+            const rNode = runs[i];
+            
+            // Check if this run actually has visible text
+            let hasVisibleText = false;
+            const tNodes = rNode.getElementsByTagName('w:t');
+            for(let t=0; t<tNodes.length; t++) {
+                if (tNodes[t] && tNodes[t].textContent && tNodes[t].textContent.trim().length > 0) {
+                    hasVisibleText = true;
+                    break;
                 }
-                
-                // Check Size
-                const sz = rPr.getElementsByTagName('w:sz')[0];
-                if (sz) {
-                    const val = parseInt(sz.getAttribute('w:val') || '0', 10);
-                    if (val > 0) {
-                        foundSizes.add(val / 2); // val is in half-points
+            }
+
+            // Only check fonts and sizes if there's actual text
+            if (hasVisibleText) {
+                const rPr = rNode.getElementsByTagName('w:rPr')[0];
+                if (rPr) {
+                    // Check Font
+                    const rFonts = rPr.getElementsByTagName('w:rFonts')[0];
+                    if (rFonts) {
+                        const ascii = rFonts.getAttribute('w:ascii');
+                        const hAnsi = rFonts.getAttribute('w:hAnsi');
+                        const fontName = ascii || hAnsi;
+                        if (fontName && !fontName.includes('TH Sarabun')) {
+                            foundFonts.add(fontName);
+                        }
+                    }
+                    
+                    // Check Size
+                    const sz = rPr.getElementsByTagName('w:sz')[0];
+                    if (sz) {
+                        const val = parseInt(sz.getAttribute('w:val') || '0', 10);
+                        if (val > 0) {
+                            foundSizes.add(val / 2); // val is in half-points
+                        }
                     }
                 }
             }
@@ -118,7 +207,8 @@ function checkDocx(buffer) {
                 fontDetails,
                 fontSizePass,
                 sizeDetails
-            }
+            },
+            subtopics: subtopicsData
         };
 
     } catch (e) {
