@@ -118,18 +118,18 @@ function checkDocx(buffer) {
         let fullText = '';
         
         let subtopicsData = {
-            bg: { found: false, isBold: false, label: 'ความเป็นมาของโครงงาน' },
-            obj: { found: false, isBold: false, label: 'วัตถุประสงค์ของโครงงาน' },
-            scope: { found: false, isBold: false, label: 'ขอบเขตของโครงงาน' },
+            bg: { found: false, isBold: false, label: 'ความเป็นมาของโครงการ' },
+            obj: { found: false, isBold: false, label: 'วัตถุประสงค์ของโครงการ' },
+            scope: { found: false, isBold: false, label: 'ขอบเขตของโครงการ' },
             benefit: { found: false, isBold: false, label: 'ประโยชน์ที่ได้รับ' },
             method: { found: false, isBold: false, label: 'วิธีการดำเนินการ' },
             vocab: { found: false, isBold: false, label: 'นิยามศัพท์' }
         };
 
         const topicsToFind = [
-            { id: 'bg', match: ['ความเป็นมาของโครงงาน', 'ความเป็นมาและความสำคัญ'] },
-            { id: 'obj', match: ['วัตถุประสงค์ของโครงงาน', 'วัตถุประสงค์'] },
-            { id: 'scope', match: ['ขอบเขตของโครงงาน', 'ขอบเขต'] },
+            { id: 'bg', match: ['ความเป็นมาของโครงการ', 'ความเป็นมาของโครงงาน', 'ความเป็นมาและความสำคัญ'] },
+            { id: 'obj', match: ['วัตถุประสงค์ของโครงการ', 'วัตถุประสงค์ของโครงงาน', 'วัตถุประสงค์'] },
+            { id: 'scope', match: ['ขอบเขตของโครงการ', 'ขอบเขตของโครงงาน', 'ขอบเขต'] },
             { id: 'benefit', match: ['ประโยชน์ที่ได้รับ', 'ประโยชน์ที่คาดว่าจะได้รับ'] },
             { id: 'method', match: ['วิธีการดำเนินการ', 'วิธีดำเนินการ'] },
             { id: 'vocab', match: ['นิยามศัพท์'] }
