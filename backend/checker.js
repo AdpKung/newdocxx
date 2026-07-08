@@ -143,14 +143,10 @@ function checkDocx(buffer) {
                     let valCs = szCsNode ? parseInt(szCsNode.getAttribute('w:val')||'0', 10)/2 : defaultPSize;
                     let valAscii = szNode ? parseInt(szNode.getAttribute('w:val')||'0', 10)/2 : defaultPSize;
                     
-                    if (valCs !== defaultPSize && valCs > 0) {
-                        runSz = valCs;
-                    } else if (valAscii !== defaultPSize && valAscii > 0) {
-                        runSz = valAscii;
-                    }
-                    
-                    if (runSz !== defaultPSize && sz === defaultPSize) {
-                        sz = runSz;
+                    if (valCs !== 16 && valCs > 0) {
+                        sz = valCs;
+                    } else if (valAscii !== 16 && valAscii > 0) {
+                        sz = valAscii;
                     }
          
                     let runIsBold = defaultPBold;
