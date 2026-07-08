@@ -66,7 +66,54 @@ function checkDocx(buffer) {
             }
         }
 
-        // 1. Text Extraction & Chapter check (Paragraph level)
+        // Helper function to extract paragraph formatting
+        function getFormat(node, defaultDocSize) {
+            let b = false;
+            let sz = defaultDocSize;
+            let center = false;
+         
+            const pPr = node.getElementsByTagName('w:pPr')[0];
+            let pPr_rPr = null;
+            if (pPr) {
+                const jc = pPr.getElementsByTagName('w:jc')[0];
+                if (jc && (jc.getAttribute('w:val') === 'center' || jc.getAttribute('w:val') === 'both')) {
+                    if (jc.getAttribute('w:val') === 'center') center = true;
+                }
+                pPr_rPr = pPr.getElementsByTagName('w:rPr')[0];
+            }
+         
+            const runs = node.getElementsByTagName('w:r');
+            for(let r=0; r<runs.length; r++) {
+                let hasText = false;
+                const tNodes = runs[r].getElementsByTagName('w:t');
+                for(let t=0; t<tNodes.length; t++) {
+                    if (tNodes[t] && tNodes[t].textContent.trim().length > 0) hasText = true;
+                }
+                
+                if (hasText) {
+                    let rPr = runs[r].getElementsByTagName('w:rPr')[0];
+                    
+                    let szNode = rPr ? rPr.getElementsByTagName('w:sz')[0] : null;
+                    let szCsNode = rPr ? rPr.getElementsByTagName('w:szCs')[0] : null;
+                    if (!szNode && pPr_rPr) szNode = pPr_rPr.getElementsByTagName('w:sz')[0];
+                    if (!szCsNode && pPr_rPr) szCsNode = pPr_rPr.getElementsByTagName('w:szCs')[0];
+         
+                    if (szCsNode) sz = parseInt(szCsNode.getAttribute('w:val')||'0', 10)/2 || sz;
+                    else if (szNode) sz = parseInt(szNode.getAttribute('w:val')||'0', 10)/2 || sz;
+         
+                    let bNode = rPr ? rPr.getElementsByTagName('w:b')[0] : null;
+                    if (!bNode && pPr_rPr) bNode = pPr_rPr.getElementsByTagName('w:b')[0];
+                    if (bNode) {
+                        const val = bNode.getAttribute('w:val');
+                        if (val !== '0' && val !== 'false') b = true;
+                    }
+                    break;
+                }
+            }
+            return { size: sz, isBold: b, isCenter: center };
+         }
+
+        // 1. Text Extraction & Structural check (Paragraph level)
         const paragraphs = docDom.getElementsByTagName('w:p');
         let fullText = '';
         
@@ -88,24 +135,17 @@ function checkDocx(buffer) {
             { id: 'vocab', match: ['นิยามศัพท์'] }
         ];
 
+        let formatDetails = [];
+        let fontSizePass = true;
+        let defaultDocSize = foundSizes.size > 0 ? Array.from(foundSizes)[0] : 16;
+
         for (let p = 0; p < paragraphs.length; p++) {
             const pNode = paragraphs[p];
             const runs = pNode.getElementsByTagName('w:r');
             let pText = '';
-            let pBold = false;
             
-            // Check if paragraph style makes it bold
-            const pPr = pNode.getElementsByTagName('w:pPr')[0];
-            if (pPr) {
-                const pRPr = pPr.getElementsByTagName('w:rPr')[0];
-                if (pRPr && pRPr.getElementsByTagName('w:b').length > 0) {
-                    pBold = true;
-                }
-            }
-
             for (let r = 0; r < runs.length; r++) {
-                const rNode = runs[r];
-                const tNodes = rNode.getElementsByTagName('w:t');
+                const tNodes = runs[r].getElementsByTagName('w:t');
                 for(let t=0; t<tNodes.length; t++) {
                     if (tNodes[t] && tNodes[t].textContent) {
                         pText += tNodes[t].textContent;
@@ -113,41 +153,65 @@ function checkDocx(buffer) {
                 }
             }
             
+            if (pText.trim().length === 0) continue;
+            
             const cleanPText = pText.replace(/\s+/g, '');
             fullText += pText + ' ';
 
+            let fmt = getFormat(pNode, defaultDocSize);
+
+            // Role identification
+            const isChapter = cleanPText.includes('บทที่') || (cleanPText.includes('บทนำ') && cleanPText.length < 20) || (cleanPText.includes('สรุปผล') && cleanPText.length < 30);
+            
+            let isSubtopic = false;
+            let matchedTopicLabel = '';
             for (let topic of topicsToFind) {
-                let isMatch = false;
                 for (let keyword of topic.match) {
                     if (cleanPText.includes(keyword)) {
-                        isMatch = true;
+                        isSubtopic = true;
+                        matchedTopicLabel = topic.label || keyword;
+                        subtopicsData[topic.id].found = true;
+                        if (fmt.isBold) subtopicsData[topic.id].isBold = true;
                         break;
                     }
                 }
+                if (isSubtopic) break;
+            }
 
-                if (isMatch) {
-                    subtopicsData[topic.id].found = true;
-                    let runBold = false;
-                    for (let r = 0; r < runs.length; r++) {
-                        const rNode = runs[r];
-                        const tNodes = rNode.getElementsByTagName('w:t');
-                        let hasText = false;
-                        for(let t=0; t<tNodes.length; t++) {
-                            if (tNodes[t] && tNodes[t].textContent.trim().length > 0) hasText = true;
-                        }
-                        if (hasText) {
-                            const rPr = rNode.getElementsByTagName('w:rPr')[0];
-                            if (rPr && rPr.getElementsByTagName('w:b').length > 0) {
-                                runBold = true;
-                            }
-                        }
-                    }
-                    if (pBold || runBold) {
-                        subtopicsData[topic.id].isBold = true;
+            let errs = [];
+            if (isChapter) {
+                if (fmt.size !== 18) errs.push(`ขนาด ${fmt.size}pt (ควรเป็น 18pt)`);
+                if (!fmt.isBold) errs.push(`ไม่ใช่ตัวหนา`);
+                if (!fmt.isCenter) errs.push(`ไม่ได้จัดกึ่งกลาง`);
+                if (errs.length > 0) {
+                    if (formatDetails.length < 15) formatDetails.push(`ชื่อบท "${pText.trim().substring(0,30)}...": ${errs.join(', ')}`);
+                    fontSizePass = false;
+                }
+            } else if (isSubtopic) {
+                if (fmt.size !== 16) errs.push(`ขนาด ${fmt.size}pt (ควรเป็น 16pt)`);
+                if (!fmt.isBold) errs.push(`ไม่ใช่ตัวหนา`);
+                if (errs.length > 0) {
+                    if (formatDetails.length < 15) formatDetails.push(`หัวข้อรอง "${matchedTopicLabel}": ${errs.join(', ')}`);
+                    fontSizePass = false;
+                }
+            } else {
+                // General content
+                if (cleanPText.length > 10) { // skip very short lines like page numbers
+                    if (fmt.size !== 16 && fmt.size < 40) errs.push(`ขนาด ${fmt.size}pt (ควรเป็น 16pt)`);
+                    if (fmt.isBold && cleanPText.length > 20) errs.push(`เป็นตัวหนาทั้งย่อหน้า`);
+                    if (errs.length > 0) {
+                        if (formatDetails.length < 15) formatDetails.push(`เนื้อหาทั่วไปขึ้นต้นด้วย "${pText.trim().substring(0,25)}...": ${errs.join(', ')}`);
+                        fontSizePass = false;
                     }
                 }
             }
+            if (!fontSizePass && formatDetails.length === 15) {
+                formatDetails.push(`...และข้อผิดพลาดอื่นๆ อีก (ระบบแสดงผลสูงสุด 15 จุด)`);
+                formatDetails.push(`PLACEHOLDER_TO_PREVENT_MORE`);
+            }
         }
+        // Remove placeholder
+        if (formatDetails[formatDetails.length-1] === `PLACEHOLDER_TO_PREVENT_MORE`) formatDetails.pop();
         
         const isBlank = fullText.trim().length < 50;
         
@@ -176,17 +240,15 @@ function checkDocx(buffer) {
             if (top < 2100) { marginPass = false; marginDetails.push(`ระยะขอบบนน้อยกว่า 1.5 นิ้ว (${Math.round(top/1440 * 100)/100} นิ้ว)`); }
         }
 
-        // 3. Fonts and Sizes Check
+        // 3. Font Family Check Only
         let fontPass = true;
-        let fontSizePass = true;
         let fontDetails = [];
-        let sizeDetails = [];
+        let sizeDetails = formatDetails; // reuse the structural details variable
 
         const runs = docDom.getElementsByTagName('w:r');
         for (let i = 0; i < runs.length; i++) {
             const rNode = runs[i];
             
-            // Check if this run actually has visible text
             let hasVisibleText = false;
             const tNodes = rNode.getElementsByTagName('w:t');
             for(let t=0; t<tNodes.length; t++) {
@@ -196,11 +258,8 @@ function checkDocx(buffer) {
                 }
             }
 
-            // Only check fonts and sizes if there's actual text
             if (hasVisibleText) {
                 let rPr = rNode.getElementsByTagName('w:rPr')[0];
-                
-                // If run doesn't have rPr (or specific font/size), check parent paragraph's pPr
                 let pPr_rPr = null;
                 const parentP = rNode.parentNode;
                 if (parentP && parentP.tagName === 'w:p') {
@@ -210,7 +269,6 @@ function checkDocx(buffer) {
                     }
                 }
 
-                // Check Font
                 let rFonts = rPr ? rPr.getElementsByTagName('w:rFonts')[0] : null;
                 if (!rFonts && pPr_rPr) rFonts = pPr_rPr.getElementsByTagName('w:rFonts')[0];
                 
@@ -222,47 +280,12 @@ function checkDocx(buffer) {
                         foundFonts.add(fontName);
                     }
                 }
-                
-                // Check Size
-                let sz = rPr ? rPr.getElementsByTagName('w:sz')[0] : null;
-                let szCs = rPr ? rPr.getElementsByTagName('w:szCs')[0] : null;
-                
-                if (!sz && pPr_rPr) sz = pPr_rPr.getElementsByTagName('w:sz')[0];
-                if (!szCs && pPr_rPr) szCs = pPr_rPr.getElementsByTagName('w:szCs')[0];
-                
-                if (sz) {
-                    const val = parseInt(sz.getAttribute('w:val') || '0', 10);
-                    if (val > 0) foundSizes.add(val / 2);
-                }
-                if (szCs) {
-                    const val = parseInt(szCs.getAttribute('w:val') || '0', 10);
-                    if (val > 0) foundSizes.add(val / 2);
-                }
             }
         }
 
         if (foundFonts.size > 0) {
             fontPass = false;
             fontDetails.push(`พบการใช้งานฟอนต์อื่น: ${Array.from(foundFonts).join(', ')}`);
-        }
-
-        // We check if they use totally wrong sizes
-        let abnormalSizes = [];
-        const allowedSizes = [16, 18, 20, 22, 24]; // Standard Thai thesis sizes
-        
-        foundSizes.forEach(size => {
-            // Check if size is not in allowed list. Ignore very large sizes (like 40+) as they might be cover pages
-            if (!allowedSizes.includes(size) && size < 36) {
-                abnormalSizes.push(`${size}pt`);
-            }
-        });
-
-        if (abnormalSizes.length > 0) {
-            fontSizePass = false;
-            sizeDetails.push(`พบขนาดตัวอักษรผิดปกติ: ${abnormalSizes.join(', ')} (ควรใช้ 16pt, 18pt, หรือ 20pt)`);
-        } else if (foundSizes.size === 0) {
-            fontSizePass = false;
-            sizeDetails.push(`ไม่สามารถตรวจพบการตั้งค่าขนาดตัวอักษรในเอกสารได้ (อาจเกิดจากการใช้สไตล์แปลกๆ) โปรดใช้ 16pt, 18pt, หรือ 20pt`);
         }
         
         return {
