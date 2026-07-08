@@ -155,11 +155,20 @@ function checkDocx(buffer) {
                         return true;
                     };
 
-                    // If explicit node exists, it overrides the style
+                    let hasExplicitBold = false;
+                    let isExplicitlyBold = false;
+
                     if (bNode) {
-                        runIsBold = checkOnOff(bNode.getAttribute('w:val'));
-                    } else if (bCsNode) {
-                        runIsBold = checkOnOff(bCsNode.getAttribute('w:val'));
+                        hasExplicitBold = true;
+                        if (checkOnOff(bNode.getAttribute('w:val'))) isExplicitlyBold = true;
+                    }
+                    if (bCsNode) {
+                        hasExplicitBold = true;
+                        if (checkOnOff(bCsNode.getAttribute('w:val'))) isExplicitlyBold = true;
+                    }
+
+                    if (hasExplicitBold) {
+                        runIsBold = isExplicitlyBold;
                     }
 
                     totalTextLength += runText.trim().length;
@@ -167,8 +176,8 @@ function checkDocx(buffer) {
                 }
             }
             
-            // If more than 80% of the text is bold, we consider the paragraph as a whole to be bold
-            if (totalTextLength > 0 && (boldTextLength / totalTextLength) > 0.8) {
+            // If more than 50% of the text is bold, we consider the paragraph as a whole to be bold
+            if (totalTextLength > 0 && (boldTextLength / totalTextLength) > 0.5) {
                 b = true;
             }
 
