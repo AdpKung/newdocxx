@@ -101,8 +101,6 @@ function checkDocx(buffer) {
                     if (sz === defaultDocSize) {
                         let szNode = rPr ? rPr.getElementsByTagName('w:sz')[0] : null;
                         let szCsNode = rPr ? rPr.getElementsByTagName('w:szCs')[0] : null;
-                        if (!szNode && pPr_rPr) szNode = pPr_rPr.getElementsByTagName('w:sz')[0];
-                        if (!szCsNode && pPr_rPr) szCsNode = pPr_rPr.getElementsByTagName('w:szCs')[0];
              
                         if (szCsNode) sz = parseInt(szCsNode.getAttribute('w:val')||'0', 10)/2 || sz;
                         else if (szNode) sz = parseInt(szNode.getAttribute('w:val')||'0', 10)/2 || sz;
@@ -110,10 +108,7 @@ function checkDocx(buffer) {
          
                     let runIsBold = false;
                     let bNode = rPr ? rPr.getElementsByTagName('w:b')[0] : null;
-                    if (!bNode && pPr_rPr) bNode = pPr_rPr.getElementsByTagName('w:b')[0];
-                    
                     let bCsNode = rPr ? rPr.getElementsByTagName('w:bCs')[0] : null;
-                    if (!bCsNode && pPr_rPr) bCsNode = pPr_rPr.getElementsByTagName('w:bCs')[0];
 
                     const checkOnOff = (val) => {
                         if (val === null || val === undefined) return true;
