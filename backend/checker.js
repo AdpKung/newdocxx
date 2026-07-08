@@ -136,13 +136,14 @@ function checkDocx(buffer) {
                 if (runText.trim().length > 0) {
                     let rPr = runs[r].getElementsByTagName('w:rPr')[0];
                     
-                    if (sz === defaultPSize) {
-                        let szNode = rPr ? rPr.getElementsByTagName('w:sz')[0] : null;
-                        let szCsNode = rPr ? rPr.getElementsByTagName('w:szCs')[0] : null;
-             
-                        if (szCsNode) sz = parseInt(szCsNode.getAttribute('w:val')||'0', 10)/2 || sz;
-                        else if (szNode) sz = parseInt(szNode.getAttribute('w:val')||'0', 10)/2 || sz;
-                    }
+                    let runSz = sz;
+                    let szNode = rPr ? rPr.getElementsByTagName('w:sz')[0] : null;
+                    let szCsNode = rPr ? rPr.getElementsByTagName('w:szCs')[0] : null;
+         
+                    if (szCsNode) runSz = parseInt(szCsNode.getAttribute('w:val')||'0', 10)/2 || runSz;
+                    else if (szNode) runSz = parseInt(szNode.getAttribute('w:val')||'0', 10)/2 || runSz;
+                    
+                    if (runSz > sz) sz = runSz;
          
                     let runIsBold = defaultPBold;
                     let bNode = rPr ? rPr.getElementsByTagName('w:b')[0] : null;
