@@ -18,6 +18,54 @@ function checkDocx(buffer) {
         const parser = new DOMParser();
         const docDom = parser.parseFromString(documentXml, 'text/xml');
         
+        let foundFonts = new Set();
+        let foundSizes = new Set();
+
+        // 0. Parse Styles.xml for default sizes
+        let stylesXml;
+        try {
+            stylesXml = zip.readAsText('word/styles.xml');
+        } catch (e) {
+            stylesXml = null;
+        }
+        
+        if (stylesXml) {
+            const stylesDom = parser.parseFromString(stylesXml, 'text/xml');
+            
+            // Check docDefaults
+            const docDefaults = stylesDom.getElementsByTagName('w:docDefaults')[0];
+            if (docDefaults) {
+                const szNodes = docDefaults.getElementsByTagName('w:sz');
+                for (let i = 0; i < szNodes.length; i++) {
+                    const val = parseInt(szNodes[i].getAttribute('w:val') || '0', 10);
+                    if (val > 0) foundSizes.add(val / 2);
+                }
+                const szCsNodes = docDefaults.getElementsByTagName('w:szCs');
+                for (let i = 0; i < szCsNodes.length; i++) {
+                    const val = parseInt(szCsNodes[i].getAttribute('w:val') || '0', 10);
+                    if (val > 0) foundSizes.add(val / 2);
+                }
+            }
+
+            // Check Normal style or default paragraph style
+            const styles = stylesDom.getElementsByTagName('w:style');
+            for (let i = 0; i < styles.length; i++) {
+                const style = styles[i];
+                if (style.getAttribute('w:type') === 'paragraph' && style.getAttribute('w:default') === '1') {
+                    const szNodes = style.getElementsByTagName('w:sz');
+                    for (let j = 0; j < szNodes.length; j++) {
+                        const val = parseInt(szNodes[j].getAttribute('w:val') || '0', 10);
+                        if (val > 0) foundSizes.add(val / 2);
+                    }
+                    const szCsNodes = style.getElementsByTagName('w:szCs');
+                    for (let j = 0; j < szCsNodes.length; j++) {
+                        const val = parseInt(szCsNodes[j].getAttribute('w:val') || '0', 10);
+                        if (val > 0) foundSizes.add(val / 2);
+                    }
+                }
+            }
+        }
+
         // 1. Text Extraction & Chapter check (Paragraph level)
         const paragraphs = docDom.getElementsByTagName('w:p');
         let fullText = '';
@@ -133,8 +181,6 @@ function checkDocx(buffer) {
         let fontSizePass = true;
         let fontDetails = [];
         let sizeDetails = [];
-        let foundFonts = new Set();
-        let foundSizes = new Set();
 
         const runs = docDom.getElementsByTagName('w:r');
         for (let i = 0; i < runs.length; i++) {
@@ -214,6 +260,9 @@ function checkDocx(buffer) {
         if (abnormalSizes.length > 0) {
             fontSizePass = false;
             sizeDetails.push(`พบขนาดตัวอักษรผิดปกติ: ${abnormalSizes.join(', ')} (ควรใช้ 16pt, 18pt, หรือ 20pt)`);
+        } else if (foundSizes.size === 0) {
+            fontSizePass = false;
+            sizeDetails.push(`ไม่สามารถตรวจพบการตั้งค่าขนาดตัวอักษรในเอกสารได้ (อาจเกิดจากการใช้สไตล์แปลกๆ) โปรดใช้ 16pt, 18pt, หรือ 20pt`);
         }
         
         return {
