@@ -180,7 +180,7 @@ function checkDocx(buffer) {
 
             let errs = [];
             if (isChapter) {
-                if (fmt.size !== 20) errs.push(`ขนาด ${fmt.size}pt (ควรเป็น 20pt)`);
+                if (fmt.size !== 18) errs.push(`ขนาด ${fmt.size}pt (ควรเป็น 18pt)`);
                 if (!fmt.isBold) errs.push(`ไม่ใช่ตัวหนา`);
                 if (!fmt.isCenter) errs.push(`ไม่ได้จัดกึ่งกลาง`);
                 if (errs.length > 0) {
