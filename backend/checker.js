@@ -15,8 +15,6 @@ function checkDocx(buffer) {
             return { error: 'Empty document.xml', isBlank: true };
         }
 
-        require('fs').writeFileSync('last_upload_document.xml', documentXml);
-
         const parser = new DOMParser();
         const docDom = parser.parseFromString(documentXml, 'text/xml');
         
