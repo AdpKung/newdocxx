@@ -215,11 +215,11 @@ function checkDocx(buffer) {
         
         const isBlank = fullText.trim().length < 50;
         
-        const hasChap1 = fullText.includes('บทที่1') || fullText.includes('บทนำ') || fullText.includes('บทที่ 1');
-        const hasChap2 = fullText.includes('บทที่2') || fullText.includes('ทฤษฎี') || fullText.includes('บทที่ 2');
-        const hasChap3 = fullText.includes('บทที่3') || fullText.includes('วิธี') || fullText.includes('บทที่ 3');
-        const hasChap4 = fullText.includes('บทที่4') || fullText.includes('ผลการ') || fullText.includes('บทที่ 4');
-        const hasChap5 = fullText.includes('บทที่5') || fullText.includes('สรุป') || fullText.includes('บทที่ 5');
+        const hasChap1 = fullText.includes('บทที่1') || fullText.includes('บทที่ 1');
+        const hasChap2 = fullText.includes('บทที่2') || fullText.includes('บทที่ 2');
+        const hasChap3 = fullText.includes('บทที่3') || fullText.includes('บทที่ 3');
+        const hasChap4 = fullText.includes('บทที่4') || fullText.includes('บทที่ 4');
+        const hasChap5 = fullText.includes('บทที่5') || fullText.includes('บทที่ 5');
 
         // 2. Margins Check
         let marginPass = true;
