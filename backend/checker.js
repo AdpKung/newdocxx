@@ -279,7 +279,12 @@ function checkDocx(buffer) {
                         }
                         return s + '</' + n.tagName + '>';
                     };
-                    const debugXml = stringifyNode(node);
+                    let debugXml = 'NO_XML';
+                    try {
+                        debugXml = stringifyNode(node);
+                    } catch(err) {
+                        debugXml = 'STRINGIFY_ERROR: ' + err.message;
+                    }
                     errs.push(`ไม่ใช่ตัวหนา (DEBUG: ${debugXml.substring(0, 1500)}...)`);
                 }
                 if (errs.length > 0) {
