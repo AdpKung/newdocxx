@@ -425,7 +425,7 @@ const CheckDocument = () => {
                         <div className={`check-item ${resultData?.details?.fontsize_pass ? 'success' : 'warning'}`}>
                           {resultData?.details?.fontsize_pass ? <CheckCircle2 size={20} className="flex-shrink-0" /> : <AlertCircle size={20} className="flex-shrink-0" />}
                           <div>
-                            <span>{resultData?.details?.fontsize_pass ? 'ตรวจพบขนาดตัวอักษรอยู่ในเกณฑ์มาตรฐาน (16pt, 20pt)' : 'พบขนาดตัวอักษรผิดปกติในบางจุด'}</span>
+                            <span>{resultData?.details?.fontsize_pass ? 'ตรวจพบขนาดตัวอักษรอยู่ในเกณฑ์มาตรฐาน (16pt - 24pt)' : 'พบขนาดตัวอักษรผิดปกติในบางจุด'}</span>
                             {!resultData?.details?.fontsize_pass && resultData?.details?.fontsize_details?.map((detail, idx) => (
                               <p key={idx} className="item-detail">{detail}</p>
                             ))}

@@ -152,31 +152,45 @@ function checkDocx(buffer) {
 
             // Only check fonts and sizes if there's actual text
             if (hasVisibleText) {
-                const rPr = rNode.getElementsByTagName('w:rPr')[0];
-                if (rPr) {
-                    // Check Font
-                    const rFonts = rPr.getElementsByTagName('w:rFonts')[0];
-                    if (rFonts) {
-                        const ascii = rFonts.getAttribute('w:ascii');
-                        const hAnsi = rFonts.getAttribute('w:hAnsi');
-                        const fontName = ascii || hAnsi;
-                        if (fontName && !fontName.includes('TH Sarabun')) {
-                            foundFonts.add(fontName);
-                        }
+                let rPr = rNode.getElementsByTagName('w:rPr')[0];
+                
+                // If run doesn't have rPr (or specific font/size), check parent paragraph's pPr
+                let pPr_rPr = null;
+                const parentP = rNode.parentNode;
+                if (parentP && parentP.tagName === 'w:p') {
+                    const pPr = parentP.getElementsByTagName('w:pPr')[0];
+                    if (pPr) {
+                        pPr_rPr = pPr.getElementsByTagName('w:rPr')[0];
                     }
-                    
-                    // Check Size
-                    const sz = rPr.getElementsByTagName('w:sz')[0];
-                    const szCs = rPr.getElementsByTagName('w:szCs')[0];
-                    
-                    if (sz) {
-                        const val = parseInt(sz.getAttribute('w:val') || '0', 10);
-                        if (val > 0) foundSizes.add(val / 2);
+                }
+
+                // Check Font
+                let rFonts = rPr ? rPr.getElementsByTagName('w:rFonts')[0] : null;
+                if (!rFonts && pPr_rPr) rFonts = pPr_rPr.getElementsByTagName('w:rFonts')[0];
+                
+                if (rFonts) {
+                    const ascii = rFonts.getAttribute('w:ascii');
+                    const hAnsi = rFonts.getAttribute('w:hAnsi');
+                    const fontName = ascii || hAnsi;
+                    if (fontName && !fontName.includes('TH Sarabun')) {
+                        foundFonts.add(fontName);
                     }
-                    if (szCs) {
-                        const val = parseInt(szCs.getAttribute('w:val') || '0', 10);
-                        if (val > 0) foundSizes.add(val / 2);
-                    }
+                }
+                
+                // Check Size
+                let sz = rPr ? rPr.getElementsByTagName('w:sz')[0] : null;
+                let szCs = rPr ? rPr.getElementsByTagName('w:szCs')[0] : null;
+                
+                if (!sz && pPr_rPr) sz = pPr_rPr.getElementsByTagName('w:sz')[0];
+                if (!szCs && pPr_rPr) szCs = pPr_rPr.getElementsByTagName('w:szCs')[0];
+                
+                if (sz) {
+                    const val = parseInt(sz.getAttribute('w:val') || '0', 10);
+                    if (val > 0) foundSizes.add(val / 2);
+                }
+                if (szCs) {
+                    const val = parseInt(szCs.getAttribute('w:val') || '0', 10);
+                    if (val > 0) foundSizes.add(val / 2);
                 }
             }
         }
