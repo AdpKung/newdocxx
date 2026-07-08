@@ -15,6 +15,8 @@ function checkDocx(buffer) {
             return { error: 'Empty document.xml', isBlank: true };
         }
 
+        require('fs').writeFileSync('last_upload_document.xml', documentXml);
+
         const parser = new DOMParser();
         const docDom = parser.parseFromString(documentXml, 'text/xml');
         
@@ -260,7 +262,10 @@ function checkDocx(buffer) {
                 }
             } else if (isSubtopic) {
                 if (fmt.size !== 16) errs.push(`ขนาด ${fmt.size}pt (กรุณาแก้ไขเป็น 16pt)`);
-                if (!fmt.isBold) errs.push(`ไม่ใช่ตัวหนา (กรุณาทำเป็นตัวหนา)`);
+                if (!fmt.isBold) {
+                    const debugXml = node.toString ? node.toString() : 'NO_XML';
+                    errs.push(`ไม่ใช่ตัวหนา (DEBUG: ${debugXml.substring(0, 150)}...)`);
+                }
                 if (errs.length > 0) {
                     if (formatDetails.length < 15) formatDetails.push(`หัวข้อรอง "${matchedTopicLabel}": ${errs.join(', ')}`);
                     fontSizePass = false;
