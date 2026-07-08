@@ -196,9 +196,10 @@ function checkDocx(buffer) {
                 }
             } else {
                 // General content
+                const isNumberedTopic = /^\d+\.\d+/.test(cleanPText);
                 if (cleanPText.length > 10) { // skip very short lines like page numbers
                     if (fmt.size !== 16 && fmt.size < 40) errs.push(`ขนาด ${fmt.size}pt (กรุณาแก้ไขเป็น 16pt)`);
-                    if (fmt.isBold && cleanPText.length > 20) errs.push(`เป็นตัวหนาทั้งย่อหน้า (กรุณาแก้ไขเป็นตัวอักษรธรรมดา ตัวไม่หนา)`);
+                    if (fmt.isBold && cleanPText.length > 20 && !isNumberedTopic) errs.push(`เป็นตัวหนาทั้งย่อหน้า (กรุณาแก้ไขเป็นตัวอักษรธรรมดา ตัวไม่หนา)`);
                     if (errs.length > 0) {
                         if (formatDetails.length < 15) formatDetails.push(`เนื้อหาทั่วไปขึ้นต้นด้วย "${pText.trim().substring(0,25)}...": ${errs.join(', ')}`);
                         fontSizePass = false;
