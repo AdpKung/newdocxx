@@ -83,33 +83,57 @@ function checkDocx(buffer) {
             }
          
             const runs = node.getElementsByTagName('w:r');
+            let totalTextLength = 0;
+            let boldTextLength = 0;
+
             for(let r=0; r<runs.length; r++) {
-                let hasText = false;
+                let runText = '';
                 const tNodes = runs[r].getElementsByTagName('w:t');
                 for(let t=0; t<tNodes.length; t++) {
-                    if (tNodes[t] && tNodes[t].textContent.trim().length > 0) hasText = true;
+                    if (tNodes[t] && tNodes[t].textContent.trim().length > 0) {
+                        runText += tNodes[t].textContent;
+                    }
                 }
                 
-                if (hasText) {
+                if (runText.trim().length > 0) {
                     let rPr = runs[r].getElementsByTagName('w:rPr')[0];
                     
-                    let szNode = rPr ? rPr.getElementsByTagName('w:sz')[0] : null;
-                    let szCsNode = rPr ? rPr.getElementsByTagName('w:szCs')[0] : null;
-                    if (!szNode && pPr_rPr) szNode = pPr_rPr.getElementsByTagName('w:sz')[0];
-                    if (!szCsNode && pPr_rPr) szCsNode = pPr_rPr.getElementsByTagName('w:szCs')[0];
+                    if (sz === defaultDocSize) {
+                        let szNode = rPr ? rPr.getElementsByTagName('w:sz')[0] : null;
+                        let szCsNode = rPr ? rPr.getElementsByTagName('w:szCs')[0] : null;
+                        if (!szNode && pPr_rPr) szNode = pPr_rPr.getElementsByTagName('w:sz')[0];
+                        if (!szCsNode && pPr_rPr) szCsNode = pPr_rPr.getElementsByTagName('w:szCs')[0];
+             
+                        if (szCsNode) sz = parseInt(szCsNode.getAttribute('w:val')||'0', 10)/2 || sz;
+                        else if (szNode) sz = parseInt(szNode.getAttribute('w:val')||'0', 10)/2 || sz;
+                    }
          
-                    if (szCsNode) sz = parseInt(szCsNode.getAttribute('w:val')||'0', 10)/2 || sz;
-                    else if (szNode) sz = parseInt(szNode.getAttribute('w:val')||'0', 10)/2 || sz;
-         
+                    let runIsBold = false;
                     let bNode = rPr ? rPr.getElementsByTagName('w:b')[0] : null;
                     if (!bNode && pPr_rPr) bNode = pPr_rPr.getElementsByTagName('w:b')[0];
+                    
+                    let bCsNode = rPr ? rPr.getElementsByTagName('w:bCs')[0] : null;
+                    if (!bCsNode && pPr_rPr) bCsNode = pPr_rPr.getElementsByTagName('w:bCs')[0];
+
                     if (bNode) {
                         const val = bNode.getAttribute('w:val');
-                        if (val !== '0' && val !== 'false') b = true;
+                        if (val !== '0' && val !== 'false') runIsBold = true;
                     }
-                    break;
+                    if (bCsNode) {
+                        const val = bCsNode.getAttribute('w:val');
+                        if (val !== '0' && val !== 'false') runIsBold = true;
+                    }
+
+                    totalTextLength += runText.trim().length;
+                    if (runIsBold) boldTextLength += runText.trim().length;
                 }
             }
+            
+            // If more than 80% of the text is bold, we consider the paragraph as a whole to be bold
+            if (totalTextLength > 0 && (boldTextLength / totalTextLength) > 0.8) {
+                b = true;
+            }
+
             return { size: sz, isBold: b, isCenter: center };
          }
 
