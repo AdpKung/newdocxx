@@ -167,11 +167,15 @@ function checkDocx(buffer) {
                     
                     // Check Size
                     const sz = rPr.getElementsByTagName('w:sz')[0];
+                    const szCs = rPr.getElementsByTagName('w:szCs')[0];
+                    
                     if (sz) {
                         const val = parseInt(sz.getAttribute('w:val') || '0', 10);
-                        if (val > 0) {
-                            foundSizes.add(val / 2); // val is in half-points
-                        }
+                        if (val > 0) foundSizes.add(val / 2);
+                    }
+                    if (szCs) {
+                        const val = parseInt(szCs.getAttribute('w:val') || '0', 10);
+                        if (val > 0) foundSizes.add(val / 2);
                     }
                 }
             }
@@ -184,17 +188,18 @@ function checkDocx(buffer) {
 
         // We check if they use totally wrong sizes
         let abnormalSizes = [];
+        const allowedSizes = [16, 18, 20, 22, 24]; // Standard Thai thesis sizes
+        
         foundSizes.forEach(size => {
-            if (size !== 16 && size !== 18 && size !== 20 && size !== 22 && size !== 24 && size < 40) {
-                if (size < 16 || (size > 20 && size !== 24)) {
-                   abnormalSizes.push(`${size}pt`);
-                }
+            // Check if size is not in allowed list. Ignore very large sizes (like 40+) as they might be cover pages
+            if (!allowedSizes.includes(size) && size < 36) {
+                abnormalSizes.push(`${size}pt`);
             }
         });
 
         if (abnormalSizes.length > 0) {
             fontSizePass = false;
-            sizeDetails.push(`พบขนาดตัวอักษรผิดปกติ: ${abnormalSizes.join(', ')} (ควรใช้ 16pt หรือ 20pt)`);
+            sizeDetails.push(`พบขนาดตัวอักษรผิดปกติ: ${abnormalSizes.join(', ')} (ควรใช้ 16pt, 18pt, หรือ 20pt)`);
         }
         
         return {
