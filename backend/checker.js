@@ -238,7 +238,7 @@ function checkDocx(buffer) {
             let matchedTopicLabel = '';
             for (let topic of topicsToFind) {
                 for (let keyword of topic.match) {
-                    if (cleanPText.includes(keyword)) {
+                    if (cleanPText.includes(keyword) && cleanPText.length < 60) {
                         isSubtopic = true;
                         matchedTopicLabel = topic.label || keyword;
                         subtopicsData[topic.id].found = true;
@@ -260,33 +260,7 @@ function checkDocx(buffer) {
                 }
             } else if (isSubtopic) {
                 if (fmt.size !== 16) errs.push(`ขนาด ${fmt.size}pt (กรุณาแก้ไขเป็น 16pt)`);
-                if (!fmt.isBold) {
-                    const stringifyNode = (n) => {
-                        if (!n) return '';
-                        if (n.nodeType === 3) return n.nodeValue;
-                        if (!n.tagName) return '';
-                        let s = '<' + n.tagName;
-                        if (n.attributes) {
-                            for (let i=0; i<n.attributes.length; i++) {
-                                s += ` ${n.attributes[i].name}="${n.attributes[i].value}"`;
-                            }
-                        }
-                        s += '>';
-                        if (n.childNodes) {
-                            for (let i=0; i<n.childNodes.length; i++) {
-                                s += stringifyNode(n.childNodes[i]);
-                            }
-                        }
-                        return s + '</' + n.tagName + '>';
-                    };
-                    let debugXml = 'NO_XML';
-                    try {
-                        debugXml = stringifyNode(pNode);
-                    } catch(err) {
-                        debugXml = 'STRINGIFY_ERROR: ' + err.message;
-                    }
-                    errs.push(`ไม่ใช่ตัวหนา (DEBUG: ${debugXml.substring(0, 1500)}...)`);
-                }
+                if (!fmt.isBold) errs.push(`ไม่ใช่ตัวหนา (กรุณาทำเป็นตัวหนา)`);
                 if (errs.length > 0) {
                     if (formatDetails.length < 15) formatDetails.push(`หัวข้อรอง "${matchedTopicLabel}": ${errs.join(', ')}`);
                     fontSizePass = false;
