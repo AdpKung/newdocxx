@@ -21,7 +21,10 @@ function checkDocx(buffer) {
         let foundFonts = new Set();
         let foundSizes = new Set();
 
-        // 0. Parse Styles.xml for default sizes
+        let styleBoldMap = {};
+        let styleSizeMap = {};
+
+        // 0. Parse Styles.xml for default sizes and style properties
         let stylesXml;
         try {
             stylesXml = zip.readAsText('word/styles.xml');
@@ -32,25 +35,41 @@ function checkDocx(buffer) {
         if (stylesXml) {
             const stylesDom = parser.parseFromString(stylesXml, 'text/xml');
             
-            // Check docDefaults
-            const docDefaults = stylesDom.getElementsByTagName('w:docDefaults')[0];
-            if (docDefaults) {
-                const szNodes = docDefaults.getElementsByTagName('w:sz');
-                for (let i = 0; i < szNodes.length; i++) {
-                    const val = parseInt(szNodes[i].getAttribute('w:val') || '0', 10);
-                    if (val > 0) foundSizes.add(val / 2);
-                }
-                const szCsNodes = docDefaults.getElementsByTagName('w:szCs');
-                for (let i = 0; i < szCsNodes.length; i++) {
-                    const val = parseInt(szCsNodes[i].getAttribute('w:val') || '0', 10);
-                    if (val > 0) foundSizes.add(val / 2);
-                }
-            }
+            const checkOnOff = (val) => {
+                if (val === null || val === undefined) return true;
+                val = val.toLowerCase();
+                if (val === '0' || val === 'false' || val === 'off') return false;
+                return true;
+            };
 
-            // Check Normal style or default paragraph style
             const styles = stylesDom.getElementsByTagName('w:style');
             for (let i = 0; i < styles.length; i++) {
                 const style = styles[i];
+                const styleId = style.getAttribute('w:styleId');
+                
+                if (styleId) {
+                    const rPr = style.getElementsByTagName('w:rPr')[0];
+                    if (rPr) {
+                        let isBold = false;
+                        let sz = null;
+                        
+                        let bNode = rPr.getElementsByTagName('w:b')[0];
+                        if (bNode && checkOnOff(bNode.getAttribute('w:val'))) isBold = true;
+                        
+                        let bCsNode = rPr.getElementsByTagName('w:bCs')[0];
+                        if (bCsNode && checkOnOff(bCsNode.getAttribute('w:val'))) isBold = true;
+                        
+                        let szNode = rPr.getElementsByTagName('w:sz')[0];
+                        let szCsNode = rPr.getElementsByTagName('w:szCs')[0];
+                        
+                        if (szCsNode) sz = parseInt(szCsNode.getAttribute('w:val')||'0', 10)/2;
+                        else if (szNode) sz = parseInt(szNode.getAttribute('w:val')||'0', 10)/2;
+
+                        styleBoldMap[styleId] = isBold;
+                        if (sz) styleSizeMap[styleId] = sz;
+                    }
+                }
+
                 if (style.getAttribute('w:type') === 'paragraph' && style.getAttribute('w:default') === '1') {
                     const szNodes = style.getElementsByTagName('w:sz');
                     for (let j = 0; j < szNodes.length; j++) {
@@ -64,23 +83,42 @@ function checkDocx(buffer) {
                     }
                 }
             }
+            
+            const docDefaults = stylesDom.getElementsByTagName('w:docDefaults')[0];
+            if (docDefaults) {
+                const szNodes = docDefaults.getElementsByTagName('w:sz');
+                for (let i = 0; i < szNodes.length; i++) {
+                    const val = parseInt(szNodes[i].getAttribute('w:val') || '0', 10);
+                    if (val > 0) foundSizes.add(val / 2);
+                }
+                const szCsNodes = docDefaults.getElementsByTagName('w:szCs');
+                for (let i = 0; i < szCsNodes.length; i++) {
+                    const val = parseInt(szCsNodes[i].getAttribute('w:val') || '0', 10);
+                    if (val > 0) foundSizes.add(val / 2);
+                }
+            }
         }
 
         // Helper function to extract paragraph formatting
         function getFormat(node, defaultDocSize) {
             let b = false;
-            let sz = defaultDocSize;
             let center = false;
          
             const pPr = node.getElementsByTagName('w:pPr')[0];
-            let pPr_rPr = null;
+            let pStyleId = null;
+
             if (pPr) {
                 const jc = pPr.getElementsByTagName('w:jc')[0];
                 if (jc && (jc.getAttribute('w:val') === 'center' || jc.getAttribute('w:val') === 'both')) {
                     if (jc.getAttribute('w:val') === 'center') center = true;
                 }
-                pPr_rPr = pPr.getElementsByTagName('w:rPr')[0];
+                const pStyleNode = pPr.getElementsByTagName('w:pStyle')[0];
+                if (pStyleNode) pStyleId = pStyleNode.getAttribute('w:val');
             }
+
+            let defaultPBold = pStyleId && styleBoldMap[pStyleId] ? true : false;
+            let defaultPSize = pStyleId && styleSizeMap[pStyleId] ? styleSizeMap[pStyleId] : defaultDocSize;
+            let sz = defaultPSize;
          
             const runs = node.getElementsByTagName('w:r');
             let totalTextLength = 0;
@@ -98,7 +136,7 @@ function checkDocx(buffer) {
                 if (runText.trim().length > 0) {
                     let rPr = runs[r].getElementsByTagName('w:rPr')[0];
                     
-                    if (sz === defaultDocSize) {
+                    if (sz === defaultPSize) {
                         let szNode = rPr ? rPr.getElementsByTagName('w:sz')[0] : null;
                         let szCsNode = rPr ? rPr.getElementsByTagName('w:szCs')[0] : null;
              
@@ -106,7 +144,7 @@ function checkDocx(buffer) {
                         else if (szNode) sz = parseInt(szNode.getAttribute('w:val')||'0', 10)/2 || sz;
                     }
          
-                    let runIsBold = false;
+                    let runIsBold = defaultPBold;
                     let bNode = rPr ? rPr.getElementsByTagName('w:b')[0] : null;
                     let bCsNode = rPr ? rPr.getElementsByTagName('w:bCs')[0] : null;
 
@@ -117,11 +155,11 @@ function checkDocx(buffer) {
                         return true;
                     };
 
+                    // If explicit node exists, it overrides the style
                     if (bNode) {
-                        if (checkOnOff(bNode.getAttribute('w:val'))) runIsBold = true;
-                    }
-                    if (bCsNode) {
-                        if (checkOnOff(bCsNode.getAttribute('w:val'))) runIsBold = true;
+                        runIsBold = checkOnOff(bNode.getAttribute('w:val'));
+                    } else if (bCsNode) {
+                        runIsBold = checkOnOff(bCsNode.getAttribute('w:val'));
                     }
 
                     totalTextLength += runText.trim().length;
