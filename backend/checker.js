@@ -115,13 +115,18 @@ function checkDocx(buffer) {
                     let bCsNode = rPr ? rPr.getElementsByTagName('w:bCs')[0] : null;
                     if (!bCsNode && pPr_rPr) bCsNode = pPr_rPr.getElementsByTagName('w:bCs')[0];
 
+                    const checkOnOff = (val) => {
+                        if (val === null || val === undefined) return true;
+                        val = val.toLowerCase();
+                        if (val === '0' || val === 'false' || val === 'off') return false;
+                        return true;
+                    };
+
                     if (bNode) {
-                        const val = bNode.getAttribute('w:val');
-                        if (val !== '0' && val !== 'false') runIsBold = true;
+                        if (checkOnOff(bNode.getAttribute('w:val'))) runIsBold = true;
                     }
                     if (bCsNode) {
-                        const val = bCsNode.getAttribute('w:val');
-                        if (val !== '0' && val !== 'false') runIsBold = true;
+                        if (checkOnOff(bCsNode.getAttribute('w:val'))) runIsBold = true;
                     }
 
                     totalTextLength += runText.trim().length;
