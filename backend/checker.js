@@ -213,7 +213,7 @@ function checkDocx(buffer) {
                 }
             } else if (isSubtopic) {
                 if (fmt.size !== 16) errs.push(`ขนาด ${fmt.size}pt (กรุณาแก้ไขเป็น 16pt)`);
-                if (fmt.isBold) errs.push(`เป็นตัวหนา (กรุณาแก้ไขเป็นตัวอักษรธรรมดา ตัวไม่หนา)`);
+                if (!fmt.isBold) errs.push(`ไม่ใช่ตัวหนา (กรุณาทำเป็นตัวหนา)`);
                 if (errs.length > 0) {
                     if (formatDetails.length < 15) formatDetails.push(`หัวข้อรอง "${matchedTopicLabel}": ${errs.join(', ')}`);
                     fontSizePass = false;
