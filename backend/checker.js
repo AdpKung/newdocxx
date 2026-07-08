@@ -140,8 +140,14 @@ function checkDocx(buffer) {
                     let szNode = rPr ? rPr.getElementsByTagName('w:sz')[0] : null;
                     let szCsNode = rPr ? rPr.getElementsByTagName('w:szCs')[0] : null;
          
-                    if (szCsNode) runSz = parseInt(szCsNode.getAttribute('w:val')||'0', 10)/2 || runSz;
-                    else if (szNode) runSz = parseInt(szNode.getAttribute('w:val')||'0', 10)/2 || runSz;
+                    let valCs = szCsNode ? parseInt(szCsNode.getAttribute('w:val')||'0', 10)/2 : defaultPSize;
+                    let valAscii = szNode ? parseInt(szNode.getAttribute('w:val')||'0', 10)/2 : defaultPSize;
+                    
+                    if (valCs !== defaultPSize && valCs > 0) {
+                        runSz = valCs;
+                    } else if (valAscii !== defaultPSize && valAscii > 0) {
+                        runSz = valAscii;
+                    }
                     
                     if (runSz !== defaultPSize && sz === defaultPSize) {
                         sz = runSz;
