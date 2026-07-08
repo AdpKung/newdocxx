@@ -281,7 +281,7 @@ function checkDocx(buffer) {
                     };
                     let debugXml = 'NO_XML';
                     try {
-                        debugXml = stringifyNode(node);
+                        debugXml = stringifyNode(pNode);
                     } catch(err) {
                         debugXml = 'STRINGIFY_ERROR: ' + err.message;
                     }
