@@ -180,16 +180,16 @@ function checkDocx(buffer) {
 
             let errs = [];
             if (isChapter) {
-                if (fmt.size !== 18) errs.push(`ขนาด ${fmt.size}pt (ควรเป็น 18pt)`);
-                if (!fmt.isBold) errs.push(`ไม่ใช่ตัวหนา`);
-                if (!fmt.isCenter) errs.push(`ไม่ได้จัดกึ่งกลาง`);
+                if (fmt.size !== 18) errs.push(`ขนาด ${fmt.size}pt (กรุณาแก้ไขเป็น 18pt)`);
+                if (!fmt.isBold) errs.push(`ไม่ใช่ตัวหนา (กรุณาทำเป็นตัวหนา)`);
+                if (!fmt.isCenter) errs.push(`ไม่ได้จัดกึ่งกลาง (กรุณาจัดหน้าแบบกึ่งกลาง)`);
                 if (errs.length > 0) {
                     if (formatDetails.length < 15) formatDetails.push(`ชื่อบท "${pText.trim().substring(0,30)}...": ${errs.join(', ')}`);
                     fontSizePass = false;
                 }
             } else if (isSubtopic) {
-                if (fmt.size !== 16) errs.push(`ขนาด ${fmt.size}pt (ควรเป็น 16pt)`);
-                if (!fmt.isBold) errs.push(`ไม่ใช่ตัวหนา`);
+                if (fmt.size !== 16) errs.push(`ขนาด ${fmt.size}pt (กรุณาแก้ไขเป็น 16pt)`);
+                if (!fmt.isBold) errs.push(`ไม่ใช่ตัวหนา (กรุณาทำเป็นตัวหนา)`);
                 if (errs.length > 0) {
                     if (formatDetails.length < 15) formatDetails.push(`หัวข้อรอง "${matchedTopicLabel}": ${errs.join(', ')}`);
                     fontSizePass = false;
@@ -197,8 +197,8 @@ function checkDocx(buffer) {
             } else {
                 // General content
                 if (cleanPText.length > 10) { // skip very short lines like page numbers
-                    if (fmt.size !== 16 && fmt.size < 40) errs.push(`ขนาด ${fmt.size}pt (ควรเป็น 16pt)`);
-                    if (fmt.isBold && cleanPText.length > 20) errs.push(`เป็นตัวหนาทั้งย่อหน้า`);
+                    if (fmt.size !== 16 && fmt.size < 40) errs.push(`ขนาด ${fmt.size}pt (กรุณาแก้ไขเป็น 16pt)`);
+                    if (fmt.isBold && cleanPText.length > 20) errs.push(`เป็นตัวหนาทั้งย่อหน้า (กรุณาแก้ไขเป็นตัวอักษรธรรมดา ตัวไม่หนา)`);
                     if (errs.length > 0) {
                         if (formatDetails.length < 15) formatDetails.push(`เนื้อหาทั่วไปขึ้นต้นด้วย "${pText.trim().substring(0,25)}...": ${errs.join(', ')}`);
                         fontSizePass = false;
