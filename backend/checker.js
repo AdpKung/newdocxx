@@ -261,7 +261,13 @@ function checkDocx(buffer) {
             } else if (isSubtopic) {
                 if (fmt.size !== 16) errs.push(`ขนาด ${fmt.size}pt (กรุณาแก้ไขเป็น 16pt)`);
                 if (!fmt.isBold) {
-                    const debugXml = node.toString ? node.toString() : 'NO_XML';
+                    let debugXml = 'NO_XML';
+                    try {
+                        const { XMLSerializer } = require('@xmldom/xmldom');
+                        debugXml = new XMLSerializer().serializeToString(node);
+                    } catch(err) {
+                        debugXml = 'XML_ERROR';
+                    }
                     errs.push(`ไม่ใช่ตัวหนา (DEBUG: ${debugXml.substring(0, 150)}...)`);
                 }
                 if (errs.length > 0) {
