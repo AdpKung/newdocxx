@@ -147,6 +147,8 @@ function checkDocx(buffer) {
                         sz = valCs;
                     } else if (valAscii !== 16 && valAscii > 0) {
                         sz = valAscii;
+                    } else {
+                        if (sz === defaultPSize) sz = 16;
                     }
          
                     let runIsBold = defaultPBold;
