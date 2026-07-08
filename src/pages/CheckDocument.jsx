@@ -271,23 +271,32 @@ const CheckDocument = () => {
                           {resultData?.details?.chapters_list?.chap1 && resultData.subtopics && (
                             <div className="subtopic-checks" style={{ paddingLeft: '20px', borderLeft: '2px solid #eee', marginLeft: '10px' }}>
                               <h5 style={{ margin: '10px 0', color: '#555' }}>ผลการตรวจหัวข้อย่อย บทที่ 1:</h5>
-                              {Object.values(resultData.subtopics).map((topic, idx) => (
-                                <div key={idx} className={`check-item ${topic.found && topic.isBold ? 'success' : 'error'}`} style={{ marginBottom: '8px', padding: '10px' }}>
-                                  {topic.found && topic.isBold ? <CheckCircle2 size={16} className="flex-shrink-0" /> : <AlertCircle size={16} className="flex-shrink-0" />}
+                              {Object.values(resultData.subtopics).every(topic => topic.found && topic.isBold) ? (
+                                <div className="check-item success" style={{ marginBottom: '8px', padding: '10px' }}>
+                                  <CheckCircle2 size={16} className="flex-shrink-0" />
                                   <div>
-                                    <span style={{ fontSize: '0.95rem' }}>หัวข้อ "{topic.label}"</span>
-                                    <p className="item-detail" style={{ fontSize: '0.85rem', marginTop: '4px' }}>
-                                      {!topic.found ? (
-                                        <span style={{color: '#d32f2f', fontWeight: 'bold'}}>วิธีแก้ไข: ขาดหัวข้อนี้ กรุณาพิมพ์ "{topic.label}" ลงในเอกสารและทำตัวหนา</span>
-                                      ) : (!topic.isBold ? (
-                                        <span style={{color: '#d32f2f', fontWeight: 'bold'}}>วิธีแก้ไข: พบหัวข้อแล้ว แต่ลืมทำตัวหนา กรุณาคลุมดำข้อความและกด Ctrl+B (ทำตัวหนา)</span>
-                                      ) : (
-                                        <span style={{color: '#2e7d32'}}>พบหัวข้อและตั้งเป็นตัวหนาถูกต้องแล้ว</span>
-                                      ))}
-                                    </p>
+                                    <span style={{ fontSize: '0.95rem', color: '#2e7d32', fontWeight: 'bold' }}>พบหัวข้อย่อยครบถ้วนและถูกต้องทั้งหมด</span>
                                   </div>
                                 </div>
-                              ))}
+                              ) : (
+                                Object.values(resultData.subtopics)
+                                  .filter(topic => !topic.found || !topic.isBold)
+                                  .map((topic, idx) => (
+                                    <div key={idx} className="check-item error" style={{ marginBottom: '8px', padding: '10px' }}>
+                                      <AlertCircle size={16} className="flex-shrink-0" />
+                                      <div>
+                                        <span style={{ fontSize: '0.95rem' }}>หัวข้อ "{topic.label}"</span>
+                                        <p className="item-detail" style={{ fontSize: '0.85rem', marginTop: '4px' }}>
+                                          {!topic.found ? (
+                                            <span style={{color: '#d32f2f', fontWeight: 'bold'}}>วิธีแก้ไข: ขาดหัวข้อนี้ กรุณาพิมพ์ "{topic.label}" ลงในเอกสารและทำตัวหนา</span>
+                                          ) : (
+                                            <span style={{color: '#d32f2f', fontWeight: 'bold'}}>วิธีแก้ไข: พบหัวข้อแล้ว แต่ลืมทำตัวหนา กรุณาคลุมดำข้อความและกด Ctrl+B (ทำตัวหนา)</span>
+                                          )}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  ))
+                              )}
                             </div>
                           )}
                         </>
