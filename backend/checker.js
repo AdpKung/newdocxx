@@ -261,14 +261,26 @@ function checkDocx(buffer) {
             } else if (isSubtopic) {
                 if (fmt.size !== 16) errs.push(`ขนาด ${fmt.size}pt (กรุณาแก้ไขเป็น 16pt)`);
                 if (!fmt.isBold) {
-                    let debugXml = 'NO_XML';
-                    try {
-                        const { XMLSerializer } = require('@xmldom/xmldom');
-                        debugXml = new XMLSerializer().serializeToString(node);
-                    } catch(err) {
-                        debugXml = 'XML_ERROR';
-                    }
-                    errs.push(`ไม่ใช่ตัวหนา (DEBUG: ${debugXml.substring(0, 150)}...)`);
+                    const stringifyNode = (n) => {
+                        if (!n) return '';
+                        if (n.nodeType === 3) return n.nodeValue;
+                        if (!n.tagName) return '';
+                        let s = '<' + n.tagName;
+                        if (n.attributes) {
+                            for (let i=0; i<n.attributes.length; i++) {
+                                s += ` ${n.attributes[i].name}="${n.attributes[i].value}"`;
+                            }
+                        }
+                        s += '>';
+                        if (n.childNodes) {
+                            for (let i=0; i<n.childNodes.length; i++) {
+                                s += stringifyNode(n.childNodes[i]);
+                            }
+                        }
+                        return s + '</' + n.tagName + '>';
+                    };
+                    const debugXml = stringifyNode(node);
+                    errs.push(`ไม่ใช่ตัวหนา (DEBUG: ${debugXml.substring(0, 1500)}...)`);
                 }
                 if (errs.length > 0) {
                     if (formatDetails.length < 15) formatDetails.push(`หัวข้อรอง "${matchedTopicLabel}": ${errs.join(', ')}`);
