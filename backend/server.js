@@ -167,6 +167,27 @@ app.get('/api/admin/users', checkAdmin, (req, res) => {
     });
 });
 
+app.get('/api/admin/stats', checkAdmin, (req, res) => {
+    db.get(`SELECT COUNT(*) as totalUsers FROM users`, (err, userRow) => {
+        if (err) return res.status(500).json({ error: 'Database error' });
+        
+        db.get(`SELECT COUNT(*) as totalDocs FROM history`, (err, historyRow) => {
+            if (err) return res.status(500).json({ error: 'Database error' });
+            
+            db.get(`SELECT COUNT(*) as totalPassed FROM history WHERE status = 'success'`, (err, passedRow) => {
+                if (err) return res.status(500).json({ error: 'Database error' });
+                
+                res.json({
+                    totalUsers: userRow.totalUsers,
+                    totalDocs: historyRow.totalDocs,
+                    totalPassed: passedRow.totalPassed,
+                    totalFailed: historyRow.totalDocs - passedRow.totalPassed
+                });
+            });
+        });
+    });
+});
+
 app.put('/api/admin/users/:id/role', checkAdmin, (req, res) => {
     const { role } = req.body;
     if (role !== 'admin' && role !== 'user') return res.status(400).json({ error: 'Invalid role' });

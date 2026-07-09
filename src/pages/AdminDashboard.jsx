@@ -1,34 +1,37 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Navigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { Users, Shield, Trash2, ArrowUpCircle, ArrowDownCircle, Loader2 } from 'lucide-react';
+import { Users, Shield, Trash2, ArrowUpCircle, ArrowDownCircle, Loader2, FileText, CheckCircle, XCircle } from 'lucide-react';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
     const { user } = useContext(AuthContext);
     const [usersList, setUsersList] = useState([]);
+    const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
     useEffect(() => {
         if (user && user.role === 'admin') {
-            fetchUsers();
+            fetchData();
         }
     }, [user]);
 
-    const fetchUsers = async () => {
+    const fetchData = async () => {
         try {
             setLoading(true);
-            const res = await fetch('/api/admin/users', {
-                headers: {
-                    'admin-id': user.id
-                }
-            });
-            if (res.ok) {
-                const data = await res.json();
-                setUsersList(data);
+            const [usersRes, statsRes] = await Promise.all([
+                fetch('/api/admin/users', { headers: { 'admin-id': user.id } }),
+                fetch('/api/admin/stats', { headers: { 'admin-id': user.id } })
+            ]);
+            
+            if (usersRes.ok && statsRes.ok) {
+                const usersData = await usersRes.json();
+                const statsData = await statsRes.json();
+                setUsersList(usersData);
+                setStats(statsData);
             } else {
-                setError('Failed to fetch users');
+                setError('Failed to fetch data');
             }
         } catch (err) {
             setError('Network error');
@@ -71,6 +74,8 @@ const AdminDashboard = () => {
             });
             if (res.ok) {
                 setUsersList(usersList.filter(u => u.id !== targetUserId));
+                // Refresh stats
+                fetchData();
             } else {
                 alert('ไม่สามารถลบผู้ใช้ได้');
             }
@@ -92,6 +97,47 @@ const AdminDashboard = () => {
                     ระบบจัดการผู้ใช้ (Admin)
                 </h1>
             </div>
+            
+            {stats && (
+                <div className="admin-stats-grid">
+                    <div className="stat-card">
+                        <div className="stat-icon" style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}>
+                            <Users size={24} />
+                        </div>
+                        <div className="stat-content">
+                            <h3>จำนวนผู้ใช้ทั้งหมด</h3>
+                            <p className="stat-number">{stats.totalUsers}</p>
+                        </div>
+                    </div>
+                    <div className="stat-card">
+                        <div className="stat-icon" style={{ backgroundColor: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6' }}>
+                            <FileText size={24} />
+                        </div>
+                        <div className="stat-content">
+                            <h3>เอกสารที่ถูกตรวจสอบ</h3>
+                            <p className="stat-number">{stats.totalDocs}</p>
+                        </div>
+                    </div>
+                    <div className="stat-card">
+                        <div className="stat-icon" style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
+                            <CheckCircle size={24} />
+                        </div>
+                        <div className="stat-content">
+                            <h3>เอกสารที่ผ่านเกณฑ์</h3>
+                            <p className="stat-number">{stats.totalPassed}</p>
+                        </div>
+                    </div>
+                    <div className="stat-card">
+                        <div className="stat-icon" style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}>
+                            <XCircle size={24} />
+                        </div>
+                        <div className="stat-content">
+                            <h3>เอกสารที่ไม่ผ่านเกณฑ์</h3>
+                            <p className="stat-number">{stats.totalFailed}</p>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <div className="admin-card">
                 {loading ? (
