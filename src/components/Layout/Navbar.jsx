@@ -61,10 +61,12 @@ const Navbar = () => {
             </Link>
           ))}
           {user ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginLeft: '1rem' }}>
-              <span style={{ color: 'var(--text-secondary)' }}>สวัสดี, {user.name}</span>
-              <button onClick={handleLogout} className="btn btn-outline" style={{ padding: '0.4rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <LogOut size={16} /> ออกจากระบบ
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginLeft: '0.5rem' }}>
+              <div style={{ padding: '0.4rem 0.8rem', background: 'rgba(var(--primary-rgb), 0.05)', borderRadius: '20px', color: 'var(--primary-color)', fontSize: '0.85rem', fontWeight: 600 }}>
+                {user.name}
+              </div>
+              <button onClick={handleLogout} className="btn btn-outline" style={{ padding: '0.4rem 0.5rem', display: 'flex', alignItems: 'center' }} title="ออกจากระบบ">
+                <LogOut size={16} />
               </button>
             </div>
           ) : (
