@@ -21,8 +21,17 @@ const db = new sqlite3.Database(dbPath, (err) => {
                 name TEXT NOT NULL,
                 email TEXT UNIQUE NOT NULL,
                 password TEXT NOT NULL,
+                role TEXT DEFAULT 'user',
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )`);
+            
+            // Add role column to existing users table if it doesn't exist (for production deployment)
+            db.run(`ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'user'`, (err) => {
+                // Ignore error if column already exists
+                
+                // Ensure admin@gmail.com gets admin privileges automatically on Render startup
+                db.run(`UPDATE users SET role = 'admin' WHERE email = 'admin@gmail.com'`);
+            });
 
             db.run(`CREATE TABLE IF NOT EXISTS history (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,

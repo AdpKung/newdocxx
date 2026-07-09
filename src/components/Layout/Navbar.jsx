@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { FileCheck2, Menu, X, BookOpen, Home, History, LogOut } from 'lucide-react';
+import { FileCheck2, Menu, X, BookOpen, Home, History, LogOut, Shield } from 'lucide-react';
 import { AuthContext } from '../../context/AuthContext';
 import './Navbar.css';
 
@@ -33,6 +33,9 @@ const Navbar = () => {
 
   if (user) {
     navLinks.push({ name: 'ประวัติการใช้งาน', path: '/history', icon: <History size={18} /> });
+    if (user.role === 'admin') {
+      navLinks.push({ name: 'จัดการผู้ใช้', path: '/admin', icon: <Shield size={18} /> });
+    }
   }
 
   return (

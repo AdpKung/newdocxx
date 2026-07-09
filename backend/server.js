@@ -128,7 +128,7 @@ app.post('/api/auth/login', (req, res) => {
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) return res.status(401).json({ error: 'Invalid credentials' });
 
-        res.json({ message: 'Login successful', user: { id: user.id, name: user.name, email: user.email } });
+        res.json({ message: 'Login successful', user: { id: user.id, name: user.name, email: user.email, role: user.role } });
     });
 });
 
@@ -145,6 +145,47 @@ app.get('/api/history', (req, res) => {
         })));
     });
 });
+
+// --- ADMIN API ---
+// Middleware to check if user is admin would normally go here, but for simplicity we rely on frontend sending role (or in production, use JWT)
+// Since we don't have JWT, we will check the role by userId in the DB for security
+const checkAdmin = (req, res, next) => {
+    const adminId = req.headers['admin-id'];
+    if (!adminId) return res.status(403).json({ error: 'Unauthorized' });
+    
+    db.get(`SELECT role FROM users WHERE id = ?`, [adminId], (err, user) => {
+        if (err) return res.status(500).json({ error: 'Database error' });
+        if (!user || user.role !== 'admin') return res.status(403).json({ error: 'Unauthorized, admin only' });
+        next();
+    });
+};
+
+app.get('/api/admin/users', checkAdmin, (req, res) => {
+    db.all(`SELECT id, name, email, role, created_at FROM users ORDER BY created_at DESC`, [], (err, rows) => {
+        if (err) return res.status(500).json({ error: 'Database error' });
+        res.json(rows);
+    });
+});
+
+app.put('/api/admin/users/:id/role', checkAdmin, (req, res) => {
+    const { role } = req.body;
+    if (role !== 'admin' && role !== 'user') return res.status(400).json({ error: 'Invalid role' });
+    
+    db.run(`UPDATE users SET role = ? WHERE id = ?`, [role, req.params.id], function(err) {
+        if (err) return res.status(500).json({ error: 'Database error' });
+        res.json({ message: 'Role updated successfully' });
+    });
+});
+
+app.delete('/api/admin/users/:id', checkAdmin, (req, res) => {
+    db.run(`DELETE FROM users WHERE id = ?`, [req.params.id], function(err) {
+        if (err) return res.status(500).json({ error: 'Database error' });
+        // Also delete history
+        db.run(`DELETE FROM history WHERE user_id = ?`, [req.params.id]);
+        res.json({ message: 'User deleted successfully' });
+    });
+});
+
 
 // --- DEPLOYMENT: Serve Frontend ---
 app.use(express.static(path.join(__dirname, '../dist')));
