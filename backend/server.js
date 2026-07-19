@@ -20,6 +20,7 @@ app.post('/api/check', upload.single('file'), (req, res) => {
     }
     
     const userId = req.body.userId;
+    const docType = req.body.docType || 'full';
     
     // Fix multer UTF-8 filename encoding issue
     let originalName = req.file.originalname;
@@ -61,23 +62,43 @@ app.post('/api/check', upload.single('file'), (req, res) => {
         });
     }
 
-    const chaptersFound = [result.chapters.chap1, result.chapters.chap2, result.chapters.chap3, result.chapters.chap4, result.chapters.chap5].filter(Boolean).length;
-    const structure_pass = chaptersFound >= 5; 
+    let chaptersFound = 0;
+    let structure_pass = false;
+    let score = 0;
+
+    if (docType === 'full') {
+        chaptersFound = [result.chapters.chap1, result.chapters.chap2, result.chapters.chap3, result.chapters.chap4, result.chapters.chap5].filter(Boolean).length;
+        structure_pass = chaptersFound >= 5; 
+        score += (chaptersFound * 8); // up to 40
+    } else {
+        const hasRequestedChap = result.chapters[docType];
+        chaptersFound = hasRequestedChap ? 1 : 0;
+        structure_pass = hasRequestedChap;
+        if (hasRequestedChap) {
+            score += 40; // Full 40 points for structure if the required chapter is present
+        }
+    }
+
     const font_pass = result.formatting.fontPass;
     const fontsize_pass = result.formatting.fontSizePass;
     const margin_pass = result.formatting.marginPass;
     
     // Calculate dynamic score
-    let score = 0;
-    score += (chaptersFound * 8); // up to 40
     if (font_pass) score += 20;
     if (fontsize_pass) score += 20;
     if (margin_pass) score += 20;
     
+    // Filter subtopics based on docType
+    let returnSubtopics = null;
+    if (docType === 'full' || docType === 'chap1') {
+        returnSubtopics = result.subtopics;
+    }
+
     const responseData = {
         scorePercent: score,
         status: score >= 80 ? 'success' : (score >= 50 ? 'warning' : 'failed'),
         message: score >= 80 ? 'เอกสารสมบูรณ์และถูกต้อง' : (score >= 50 ? 'พบจุดที่ต้องแก้ไขบางส่วน' : 'โครงสร้างเอกสารมีข้อผิดพลาดมาก'),
+        docType: docType,
         details: {
             structure_pass: structure_pass,
             chapters_found: chaptersFound,
@@ -89,7 +110,7 @@ app.post('/api/check', upload.single('file'), (req, res) => {
             margin_pass: margin_pass,
             margin_details: result.formatting.marginDetails
         },
-        subtopics: result.subtopics
+        subtopics: returnSubtopics
     };
 
     if (userId) {
