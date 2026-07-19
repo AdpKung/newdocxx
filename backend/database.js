@@ -1,52 +1,104 @@
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
-const fs = require('fs');
+const { Pool } = require('pg');
 
-// Use .data directory which is ignored by Glitch file watcher (prevents app restarts on DB write)
-const dataDir = path.join(__dirname, '../.data');
-if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir);
-}
+const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:68319100021AoF@db.jzvdddtckdkgvffkssmr.supabase.co:5432/postgres';
 
-const dbPath = path.join(dataDir, 'database.sqlite');
-const db = new sqlite3.Database(dbPath, (err) => {
+const pool = new Pool({
+    connectionString,
+    ssl: { rejectUnauthorized: false }
+});
+
+pool.connect((err) => {
     if (err) {
-        console.error('Error opening database', err.message);
+        console.error('Error connecting to PostgreSQL:', err.message);
     } else {
-        console.log('Connected to the SQLite database.');
+        console.log('Connected to PostgreSQL database (Supabase).');
         
         // Initialize tables
-        db.serialize(() => {
-            db.run(`CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
-                email TEXT UNIQUE NOT NULL,
-                password TEXT NOT NULL,
-                role TEXT DEFAULT 'user',
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-            )`);
-            
-            // Add role column to existing users table if it doesn't exist (for production deployment)
-            db.run(`ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'user'`, (err) => {
-                // Ignore error if column already exists
-                
-                // Ensure admin@gmail.com gets admin privileges automatically on Render startup
-                db.run(`UPDATE users SET role = 'admin' WHERE email = 'admin@gmail.com'`);
-            });
+        pool.query(`CREATE TABLE IF NOT EXISTS users (
+            id SERIAL PRIMARY KEY,
+            name VARCHAR(255) NOT NULL,
+            email VARCHAR(255) UNIQUE NOT NULL,
+            password VARCHAR(255) NOT NULL,
+            role VARCHAR(50) DEFAULT 'user',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )`, (err) => {
+            if (err) console.error("Error creating users table", err);
+            else {
+                // Ensure admin@gmail.com gets admin privileges automatically
+                pool.query(`UPDATE users SET role = 'admin' WHERE email = 'admin@gmail.com'`).catch(() => {});
+            }
+        });
 
-            db.run(`CREATE TABLE IF NOT EXISTS history (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER NOT NULL,
-                file_name TEXT NOT NULL,
-                score_percent INTEGER NOT NULL,
-                status TEXT NOT NULL,
-                message TEXT,
-                details TEXT,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES users(id)
-            )`);
+        pool.query(`CREATE TABLE IF NOT EXISTS history (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER NOT NULL REFERENCES users(id),
+            file_name VARCHAR(255) NOT NULL,
+            score_percent INTEGER NOT NULL,
+            status VARCHAR(50) NOT NULL,
+            message TEXT,
+            details TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )`, (err) => {
+            if (err) console.error("Error creating history table", err);
         });
     }
 });
+
+// Helper function to convert SQLite parameter '?' to Postgres '$1, $2'
+function convertQuery(sql) {
+    let index = 1;
+    return sql.replace(/\?/g, () => `$${index++}`);
+}
+
+const db = {
+    run: (sql, params, callback) => {
+        if (typeof params === 'function') {
+            callback = params;
+            params = [];
+        }
+        let pgSql = convertQuery(sql);
+        
+        // SQLite returns the last inserted ID via `this.lastID`.
+        // To mock this, we append RETURNING id for INSERT statements in Postgres.
+        let isInsert = pgSql.trim().toUpperCase().startsWith('INSERT');
+        if (isInsert && !pgSql.toUpperCase().includes('RETURNING')) {
+            pgSql += ' RETURNING id';
+        }
+
+        pool.query(pgSql, params, (err, res) => {
+            if (err && err.code === '23505') {
+                // Map Postgres unique violation to SQLite error message so server.js works without changes
+                err.message = 'UNIQUE constraint failed: ' + err.message;
+            }
+            if (callback) {
+                const context = {};
+                if (isInsert && res && res.rows && res.rows.length > 0 && res.rows[0].id) {
+                    context.lastID = res.rows[0].id;
+                }
+                callback.call(context, err);
+            }
+        });
+    },
+    get: (sql, params, callback) => {
+        if (typeof params === 'function') {
+            callback = params;
+            params = [];
+        }
+        pool.query(convertQuery(sql), params, (err, result) => {
+            if (err) return callback(err);
+            callback(null, result.rows[0]);
+        });
+    },
+    all: (sql, params, callback) => {
+        if (typeof params === 'function') {
+            callback = params;
+            params = [];
+        }
+        pool.query(convertQuery(sql), params, (err, result) => {
+            if (err) return callback(err);
+            callback(null, result.rows);
+        });
+    }
+};
 
 module.exports = db;
