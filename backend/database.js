@@ -2,7 +2,8 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
 
-const dataDir = path.join(__dirname, 'data');
+// Use .data directory which is ignored by Glitch file watcher (prevents app restarts on DB write)
+const dataDir = path.join(__dirname, '../.data');
 if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir);
 }
