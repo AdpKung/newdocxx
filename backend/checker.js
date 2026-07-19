@@ -239,7 +239,17 @@ function checkDocx(buffer) {
             let fmt = getFormat(pNode, defaultDocSize);
 
             // Role identification
-            const isChapter = cleanPText.includes('บทที่') || (cleanPText.includes('บทนำ') && cleanPText.length < 20) || (cleanPText.includes('สรุปผล') && cleanPText.length < 30);
+            const chapterTitles = ['บทนำ', 'เอกสารและงานวิจัยที่เกี่ยวข้อง', 'ทฤษฎีและเอกสารที่เกี่ยวข้อง', 'วิธีดำเนินการ', 'วิธีการดำเนินการ', 'ผลการดำเนินงาน', 'ผลการศึกษา', 'สรุปผล', 'ข้อเสนอแนะ'];
+            let isChapter = cleanPText.includes('บทที่') && cleanPText.length < 60;
+            
+            if (!isChapter) {
+                for (let title of chapterTitles) {
+                    if (cleanPText.includes(title) && cleanPText.length < 50) {
+                        isChapter = true;
+                        break;
+                    }
+                }
+            }
             
             let isSubtopic = false;
             let matchedTopicLabel = '';
@@ -254,6 +264,18 @@ function checkDocx(buffer) {
                     }
                 }
                 if (isSubtopic) break;
+            }
+
+            if (!isSubtopic && !isChapter) {
+                // Check if it's a numbered subtopic like 2.1, 2.2, 2.1.1
+                const trimmed = pText.trim();
+                if (/^\d+\.\d+/.test(trimmed) && trimmed.length < 150) {
+                    // Only consider it a subtopic heading if it's relatively short and bold
+                    // But to provide correct feedback (e.g., if they made it regular instead of bold),
+                    // we'll classify any short numbered line as a subtopic.
+                    isSubtopic = true;
+                    matchedTopicLabel = trimmed.substring(0, 30) + (trimmed.length > 30 ? '...' : '');
+                }
             }
 
             let errs = [];
