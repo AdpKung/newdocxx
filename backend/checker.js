@@ -270,14 +270,35 @@ function checkDocx(buffer) {
                 // Check if it's a numbered subtopic like 2.1, 2.2, 2.1.1
                 const trimmed = pText.trim();
                 if (/^\d+\.\d+/.test(trimmed)) {
-                    // Distinguish between a real heading and a numbered list/content item
+                    // Peek at the next non-empty paragraph to see if this is an outline list
+                    let nextPText = '';
+                    for (let n = p + 1; n < paragraphs.length && n < p + 5; n++) {
+                        let text = '';
+                        const nRuns = paragraphs[n].getElementsByTagName('w:r');
+                        for (let r = 0; r < nRuns.length; r++) {
+                            const tNodes = nRuns[r].getElementsByTagName('w:t');
+                            for (let t=0; t<tNodes.length; t++) {
+                                if (tNodes[t] && tNodes[t].textContent) text += tNodes[t].textContent;
+                            }
+                        }
+                        if (text.trim().length > 0) {
+                            nextPText = text.trim();
+                            break;
+                        }
+                    }
+
+                    let isOutlineList = false;
+                    if (nextPText && /^\d+\.\d+/.test(nextPText) && nextPText.length < 70) {
+                        isOutlineList = true;
+                    }
+
                     let isLikelyHeading = false;
                     
-                    // Real headings are usually short and don't contain colons (which often indicate definitions)
-                    if (trimmed.length < 70 && !trimmed.includes(':')) {
+                    // Real headings are usually short, don't contain colons, and are not part of an outline list
+                    if (trimmed.length < 70 && !trimmed.includes(':') && !isOutlineList) {
                         isLikelyHeading = true;
                     } else if (fmt.isBold && trimmed.length < 120) {
-                        // If they intentionally bolded it, treat it as a heading even if slightly longer
+                        // If they intentionally bolded it, treat it as a heading even if it's part of a list or longer
                         isLikelyHeading = true;
                     }
 
