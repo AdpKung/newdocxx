@@ -145,17 +145,37 @@ const CheckDocument = () => {
               >
                 {!file ? (
                   <>
-                    <div className="doc-type-selector" style={{ marginBottom: '1.5rem', textAlign: 'center' }}>
-                       <p style={{ fontWeight: 500, marginBottom: '0.5rem', color: 'var(--text-color)' }}>ประเภทเอกสารที่ต้องการตรวจสอบ:</p>
-                       <select value={docType} onChange={(e) => setDocType(e.target.value)} style={{ padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid var(--border-color)', width: '100%', maxWidth: '350px', fontSize: '1rem', outline: 'none', background: 'var(--bg-card)', color: 'var(--text-color)', cursor: 'pointer' }}>
-                         <option value="full">ฉบับสมบูรณ์ (บทที่ 1-5)</option>
-                         <option value="chap1">บทที่ 1 บทนำ</option>
-                         <option value="chap2">บทที่ 2 ทฤษฎีและเอกสารที่เกี่ยวข้อง</option>
-                         <option value="chap3">บทที่ 3 วิธีการดำเนินการ</option>
-                         <option value="chap4">บทที่ 4 ผลการดำเนินงาน</option>
-                         <option value="chap5">บทที่ 5 สรุปผลและข้อเสนอแนะ</option>
-                       </select>
-                    </div>
+                    <motion.div 
+                      className="doc-type-selector"
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 }}
+                    >
+                       <p>ประเภทเอกสารที่ต้องการตรวจสอบ:</p>
+                       <div className="doc-type-pills">
+                         {[
+                           { id: 'full', label: 'ฉบับสมบูรณ์ (บทที่ 1-5)' },
+                           { id: 'chap1', label: 'บทที่ 1 บทนำ' },
+                           { id: 'chap2', label: 'บทที่ 2 ทฤษฎีและเอกสารที่เกี่ยวข้อง' },
+                           { id: 'chap3', label: 'บทที่ 3 วิธีการดำเนินการ' },
+                           { id: 'chap4', label: 'บทที่ 4 ผลการดำเนินงาน' },
+                           { id: 'chap5', label: 'บทที่ 5 สรุปผลและข้อเสนอแนะ' }
+                         ].map(type => (
+                           <motion.button
+                             key={type.id}
+                             whileHover={{ scale: 1.02 }}
+                             whileTap={{ scale: 0.98 }}
+                             className={`doc-type-pill ${docType === type.id ? 'active' : ''}`}
+                             onClick={(e) => {
+                               e.preventDefault();
+                               setDocType(type.id);
+                             }}
+                           >
+                             {type.label}
+                           </motion.button>
+                         ))}
+                       </div>
+                    </motion.div>
                     <div className="drop-icon-wrapper">
                       <UploadCloud size={48} className="drop-icon" />
                     </div>
