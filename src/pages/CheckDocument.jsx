@@ -256,11 +256,12 @@ const CheckDocument = () => {
               <div className="detailed-results">
                 <div className="checklist-panel glass-panel full-width">
                   <div className="panel-header">
-                    <h3>ผลการตรวจสอบรายละเอียดทั้งหมด (บทที่ 1 - 5)</h3>
+                    <h3>ผลการตรวจสอบรายละเอียด {resultData?.docType === 'full' ? 'ทั้งหมด (บทที่ 1 - 5)' : `(${resultData?.docType?.replace('chap', 'บทที่ ')})`}</h3>
                   </div>
                   
                   <div className="checklist-grid">
                     {/* หมวดหมู่: บทที่ 1 */}
+                    {(resultData?.docType === 'full' || resultData?.docType === 'chap1') && (
                     <div className="checklist-group">
                       <h4><FileTextIcon /> บทที่ 1 บทนำ</h4>
                       {(isEmpty || isError) ? (
@@ -315,8 +316,10 @@ const CheckDocument = () => {
                         </>
                       )}
                     </div>
+                    )}
 
                     {/* หมวดหมู่: บทที่ 2 */}
+                    {(resultData?.docType === 'full' || resultData?.docType === 'chap2') && (
                     <div className="checklist-group">
                       <h4><FileTextIcon /> บทที่ 2 เอกสารและงานวิจัยที่เกี่ยวข้อง</h4>
                       {(isEmpty || isError) ? (
@@ -338,8 +341,10 @@ const CheckDocument = () => {
                         </div>
                       )}
                     </div>
+                    )}
 
                     {/* หมวดหมู่: บทที่ 3 */}
+                    {(resultData?.docType === 'full' || resultData?.docType === 'chap3') && (
                     <div className="checklist-group">
                       <h4><FileTextIcon /> บทที่ 3 วิธีดำเนินการโครงงาน</h4>
                       {(isEmpty || isError) ? (
@@ -361,8 +366,10 @@ const CheckDocument = () => {
                         </div>
                       )}
                     </div>
+                    )}
 
                     {/* หมวดหมู่: บทที่ 4 */}
+                    {(resultData?.docType === 'full' || resultData?.docType === 'chap4') && (
                     <div className="checklist-group">
                       <h4><FileTextIcon /> บทที่ 4 ผลการดำเนินงาน</h4>
                       {(isEmpty || isError) ? (
@@ -384,8 +391,10 @@ const CheckDocument = () => {
                         </div>
                       )}
                     </div>
+                    )}
 
                     {/* หมวดหมู่: บทที่ 5 */}
+                    {(resultData?.docType === 'full' || resultData?.docType === 'chap5') && (
                     <div className="checklist-group">
                       <h4><FileTextIcon /> บทที่ 5 สรุปผลและข้อเสนอแนะ</h4>
                       {(isEmpty || isError) ? (
@@ -407,6 +416,7 @@ const CheckDocument = () => {
                         </div>
                       )}
                     </div>
+                    )}
 
                     {/* หมวดหมู่: ชนิดฟอนต์ */}
                     <div className="checklist-group">
