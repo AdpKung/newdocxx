@@ -108,7 +108,9 @@ app.post('/api/auth/register', async (req, res) => {
     if (!name || !email || !password) return res.status(400).json({ error: 'Please provide all fields' });
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    db.run(`INSERT INTO users (name, email, password) VALUES (?, ?, ?)`, [name, email, hashedPassword], function(err) {
+    const role = email === 'admin@gmail.com' ? 'admin' : 'user';
+    
+    db.run(`INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)`, [name, email, hashedPassword, role], function(err) {
         if (err) {
             if (err.message.includes('UNIQUE constraint failed')) {
                 return res.status(400).json({ error: 'Email already exists' });
