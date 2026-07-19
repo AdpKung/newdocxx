@@ -269,12 +269,22 @@ function checkDocx(buffer) {
             if (!isSubtopic && !isChapter) {
                 // Check if it's a numbered subtopic like 2.1, 2.2, 2.1.1
                 const trimmed = pText.trim();
-                if (/^\d+\.\d+/.test(trimmed) && trimmed.length < 150) {
-                    // Only consider it a subtopic heading if it's relatively short and bold
-                    // But to provide correct feedback (e.g., if they made it regular instead of bold),
-                    // we'll classify any short numbered line as a subtopic.
-                    isSubtopic = true;
-                    matchedTopicLabel = trimmed.substring(0, 30) + (trimmed.length > 30 ? '...' : '');
+                if (/^\d+\.\d+/.test(trimmed)) {
+                    // Distinguish between a real heading and a numbered list/content item
+                    let isLikelyHeading = false;
+                    
+                    // Real headings are usually short and don't contain colons (which often indicate definitions)
+                    if (trimmed.length < 70 && !trimmed.includes(':')) {
+                        isLikelyHeading = true;
+                    } else if (fmt.isBold && trimmed.length < 120) {
+                        // If they intentionally bolded it, treat it as a heading even if slightly longer
+                        isLikelyHeading = true;
+                    }
+
+                    if (isLikelyHeading) {
+                        isSubtopic = true;
+                        matchedTopicLabel = trimmed.substring(0, 30) + (trimmed.length > 30 ? '...' : '');
+                    }
                 }
             }
 
