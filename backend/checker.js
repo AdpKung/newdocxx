@@ -294,9 +294,21 @@ function checkDocx(buffer) {
 
                     let isLikelyHeading = false;
                     
+                    // Check how many parts the number has (e.g. 2.1 = 2 parts, 2.1.1.1 = 4 parts)
+                    const numMatch = trimmed.match(/^(\d+(?:\.\d+)+)/);
+                    let numParts = 2;
+                    if (numMatch) {
+                        numParts = numMatch[1].split('.').length;
+                    }
+                    
                     // Real headings are usually short, don't contain colons, and are not part of an outline list
                     if (trimmed.length < 70 && !trimmed.includes(':') && !isOutlineList) {
-                        isLikelyHeading = true;
+                        // If it is a deep numbered list (4 or more levels like 2.1.1.1) and NOT bold, assume it is content
+                        if (numParts >= 4 && !fmt.isBold) {
+                            isLikelyHeading = false;
+                        } else {
+                            isLikelyHeading = true;
+                        }
                     } else if (fmt.isBold && trimmed.length < 120) {
                         // If they intentionally bolded it, treat it as a heading even if it's part of a list or longer
                         isLikelyHeading = true;
