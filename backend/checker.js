@@ -303,8 +303,8 @@ function checkDocx(buffer) {
                     
                     // Real headings are usually short, don't contain colons, and are not part of an outline list
                     if (trimmed.length < 70 && !trimmed.includes(':') && !isOutlineList) {
-                        // If it is a deep numbered list (4 or more levels like 2.1.1.1) and NOT bold, assume it is content
-                        if (numParts >= 4 && !fmt.isBold) {
+                        // If it is a deep numbered list (3 or more levels like 2.1.1) and NOT bold, assume it is content
+                        if (numParts >= 3 && !fmt.isBold) {
                             isLikelyHeading = false;
                         } else {
                             isLikelyHeading = true;
