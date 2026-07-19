@@ -245,7 +245,27 @@ function checkDocx(buffer) {
             if (!isChapter) {
                 for (let title of chapterTitles) {
                     if (cleanPText.includes(title) && cleanPText.length < 50) {
-                        isChapter = true;
+                        // To avoid collision with subtopics (like 'วิธีการดำเนินการ' in Chap 1),
+                        // a chapter title must be immediately preceded by a paragraph containing 'บทที่'
+                        let prevPText = '';
+                        for (let prev = p - 1; prev >= 0; prev--) {
+                            let text = '';
+                            const pRuns = paragraphs[prev].getElementsByTagName('w:r');
+                            for (let r = 0; r < pRuns.length; r++) {
+                                const tNodes = pRuns[r].getElementsByTagName('w:t');
+                                for (let t=0; t<tNodes.length; t++) {
+                                    if (tNodes[t] && tNodes[t].textContent) text += tNodes[t].textContent;
+                                }
+                            }
+                            if (text.trim().length > 0) {
+                                prevPText = text.replace(/\s+/g, '');
+                                break;
+                            }
+                        }
+                        
+                        if (prevPText.includes('บทที่')) {
+                            isChapter = true;
+                        }
                         break;
                     }
                 }
