@@ -27,8 +27,7 @@ const Navbar = () => {
 
   const navLinks = [
     { name: 'หน้าแรก', path: '/', icon: <Home size={18} /> },
-    { name: 'ตรวจสอบเอกสาร', path: '/check', icon: <FileCheck2 size={18} /> },
-    { name: 'คู่มือและเทมเพลต', path: '/guidelines', icon: <BookOpen size={18} /> },
+    { name: 'ตรวจสอบเอกสาร', path: '/check', icon: <FileCheck2 size={18} /> }
   ];
 
   if (user) {
