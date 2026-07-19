@@ -1,35 +1,34 @@
 const { Pool } = require('pg');
 
-const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:68319100021AoF@db.jzvdddtckdkgvffkssmr.supabase.co:5432/postgres';
+const connectionString = process.env.DATABASE_URL || 'postgresql://postgres.jzvdddtckdkgvffkssmr:68319100021AoF@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres';
 
 const pool = new Pool({
     connectionString,
     ssl: { rejectUnauthorized: false }
 });
 
-pool.connect((err) => {
+pool.connect(async (err, client, release) => {
     if (err) {
         console.error('Error connecting to PostgreSQL:', err.message);
-    } else {
-        console.log('Connected to PostgreSQL database (Supabase).');
-        
-        // Initialize tables
-        pool.query(`CREATE TABLE IF NOT EXISTS users (
+        return;
+    }
+    
+    console.log('Connected to PostgreSQL database (Supabase IPv4 Pooler).');
+    
+    try {
+        // Initialize tables sequentially to avoid relation errors
+        await client.query(`CREATE TABLE IF NOT EXISTS users (
             id SERIAL PRIMARY KEY,
             name VARCHAR(255) NOT NULL,
             email VARCHAR(255) UNIQUE NOT NULL,
             password VARCHAR(255) NOT NULL,
             role VARCHAR(50) DEFAULT 'user',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )`, (err) => {
-            if (err) console.error("Error creating users table", err);
-            else {
-                // Ensure admin@gmail.com gets admin privileges automatically
-                pool.query(`UPDATE users SET role = 'admin' WHERE email = 'admin@gmail.com'`).catch(() => {});
-            }
-        });
+        )`);
 
-        pool.query(`CREATE TABLE IF NOT EXISTS history (
+        await client.query(`UPDATE users SET role = 'admin' WHERE email = 'admin@gmail.com'`);
+
+        await client.query(`CREATE TABLE IF NOT EXISTS history (
             id SERIAL PRIMARY KEY,
             user_id INTEGER NOT NULL REFERENCES users(id),
             file_name VARCHAR(255) NOT NULL,
@@ -38,9 +37,11 @@ pool.connect((err) => {
             message TEXT,
             details TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )`, (err) => {
-            if (err) console.error("Error creating history table", err);
-        });
+        )`);
+    } catch (e) {
+        console.error("Error initializing tables", e);
+    } finally {
+        release();
     }
 });
 
