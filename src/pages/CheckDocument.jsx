@@ -1,12 +1,13 @@
 import React, { useState, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UploadCloud, FileType, CheckCircle2, AlertCircle, RefreshCw, Download, ChevronRight, Loader2 } from 'lucide-react';
+import { UploadCloud, FileType, CheckCircle2, AlertCircle, RefreshCw, Download, ChevronRight, Loader2, ChevronDown } from 'lucide-react';
 import './CheckDocument.css';
 
 const CheckDocument = () => {
   const [file, setFile] = useState(null);
   const [docType, setDocType] = useState('full');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [status, setStatus] = useState('idle'); // idle, processing, result
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const [resultData, setResultData] = useState(null);
@@ -152,28 +153,61 @@ const CheckDocument = () => {
                       transition={{ delay: 0.1 }}
                     >
                        <p>ประเภทเอกสารที่ต้องการตรวจสอบ:</p>
-                       <div className="doc-type-pills">
-                         {[
-                           { id: 'full', label: 'ฉบับสมบูรณ์ (บทที่ 1-5)' },
-                           { id: 'chap1', label: 'บทที่ 1 บทนำ' },
-                           { id: 'chap2', label: 'บทที่ 2 ทฤษฎีและเอกสารที่เกี่ยวข้อง' },
-                           { id: 'chap3', label: 'บทที่ 3 วิธีการดำเนินการ' },
-                           { id: 'chap4', label: 'บทที่ 4 ผลการดำเนินงาน' },
-                           { id: 'chap5', label: 'บทที่ 5 สรุปผลและข้อเสนอแนะ' }
-                         ].map(type => (
-                           <motion.button
-                             key={type.id}
-                             whileHover={{ scale: 1.02 }}
-                             whileTap={{ scale: 0.98 }}
-                             className={`doc-type-pill ${docType === type.id ? 'active' : ''}`}
-                             onClick={(e) => {
-                               e.preventDefault();
-                               setDocType(type.id);
-                             }}
+                       <div className="custom-dropdown-container">
+                         <div 
+                           className={`custom-dropdown-trigger ${isDropdownOpen ? 'open' : ''}`}
+                           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                         >
+                           <span>
+                             {[
+                               { id: 'full', label: 'ฉบับสมบูรณ์ (บทที่ 1-5)' },
+                               { id: 'chap1', label: 'บทที่ 1 บทนำ' },
+                               { id: 'chap2', label: 'บทที่ 2 ทฤษฎีและเอกสารที่เกี่ยวข้อง' },
+                               { id: 'chap3', label: 'บทที่ 3 วิธีการดำเนินการ' },
+                               { id: 'chap4', label: 'บทที่ 4 ผลการดำเนินงาน' },
+                               { id: 'chap5', label: 'บทที่ 5 สรุปผลและข้อเสนอแนะ' }
+                             ].find(t => t.id === docType)?.label || 'เลือกประเภทเอกสาร'}
+                           </span>
+                           <motion.div
+                             animate={{ rotate: isDropdownOpen ? 180 : 0 }}
+                             transition={{ duration: 0.3 }}
                            >
-                             {type.label}
-                           </motion.button>
-                         ))}
+                             <ChevronDown size={20} />
+                           </motion.div>
+                         </div>
+
+                         <AnimatePresence>
+                           {isDropdownOpen && (
+                             <motion.div 
+                               className="custom-dropdown-menu"
+                               initial={{ opacity: 0, y: -10, height: 0 }}
+                               animate={{ opacity: 1, y: 0, height: 'auto' }}
+                               exit={{ opacity: 0, y: -10, height: 0 }}
+                               transition={{ duration: 0.2 }}
+                             >
+                               {[
+                                 { id: 'full', label: 'ฉบับสมบูรณ์ (บทที่ 1-5)' },
+                                 { id: 'chap1', label: 'บทที่ 1 บทนำ' },
+                                 { id: 'chap2', label: 'บทที่ 2 ทฤษฎีและเอกสารที่เกี่ยวข้อง' },
+                                 { id: 'chap3', label: 'บทที่ 3 วิธีการดำเนินการ' },
+                                 { id: 'chap4', label: 'บทที่ 4 ผลการดำเนินงาน' },
+                                 { id: 'chap5', label: 'บทที่ 5 สรุปผลและข้อเสนอแนะ' }
+                               ].map(type => (
+                                 <button
+                                   key={type.id}
+                                   className={`custom-dropdown-item ${docType === type.id ? 'active' : ''}`}
+                                   onClick={(e) => {
+                                     e.preventDefault();
+                                     setDocType(type.id);
+                                     setIsDropdownOpen(false);
+                                   }}
+                                 >
+                                   {type.label}
+                                 </button>
+                               ))}
+                             </motion.div>
+                           )}
+                         </AnimatePresence>
                        </div>
                     </motion.div>
                     <div className="drop-icon-wrapper">
