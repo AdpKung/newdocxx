@@ -460,7 +460,7 @@ const CheckDocument = () => {
                                   <span style={{ fontSize: '0.95rem', color: resultData.formulas.percent ? '#2e7d32' : '#d32f2f' }}>1. สูตรร้อยละ (Percentage)</span>
                                   {!resultData.formulas.percent && (
                                     <p className="item-detail" style={{ fontSize: '0.85rem', marginTop: '4px', color: '#d32f2f', fontWeight: 'bold' }}>
-                                      วิธีแก้ไข: ไม่พบสูตรร้อยละ หรือขาดการอ้างอิง กรุณาเติมประโยค "ใช้สูตรดังนี้ (ชื่อ, ปี)" เช่น "ใช้สูตรดังนี้: (บุญชม ศรีสะอาด, 2556)"
+                                      วิธีแก้ไข: ไม่พบแหล่งอ้างอิง
                                     </p>
                                   )}
                                 </div>
@@ -472,7 +472,7 @@ const CheckDocument = () => {
                                   <span style={{ fontSize: '0.95rem', color: resultData.formulas.mean ? '#2e7d32' : '#d32f2f' }}>2. สูตรค่าเฉลี่ย (Mean)</span>
                                   {!resultData.formulas.mean && (
                                     <p className="item-detail" style={{ fontSize: '0.85rem', marginTop: '4px', color: '#d32f2f', fontWeight: 'bold' }}>
-                                      วิธีแก้ไข: ไม่พบสูตรค่าเฉลี่ย หรือขาดการอ้างอิง กรุณาเติมประโยค "ใช้สูตรดังนี้ (ชื่อ, ปี)" เช่น "ใช้สูตรดังนี้: (บุญชม ศรีสะอาด, 2556)"
+                                      วิธีแก้ไข: ไม่พบแหล่งอ้างอิง
                                     </p>
                                   )}
                                 </div>
@@ -484,7 +484,7 @@ const CheckDocument = () => {
                                   <span style={{ fontSize: '0.95rem', color: resultData.formulas.sd ? '#2e7d32' : '#d32f2f' }}>3. สูตรส่วนเบี่ยงเบนมาตรฐาน (S.D.)</span>
                                   {!resultData.formulas.sd && (
                                     <p className="item-detail" style={{ fontSize: '0.85rem', marginTop: '4px', color: '#d32f2f', fontWeight: 'bold' }}>
-                                      วิธีแก้ไข: ไม่พบสูตร S.D. หรือขาดการอ้างอิง กรุณาเติมประโยค "ใช้สูตรดังนี้ (ชื่อ, ปี)" เช่น "ใช้สูตรดังนี้: (บุญชม ศรีสะอาด, 2556)"
+                                      วิธีแก้ไข: ไม่พบแหล่งอ้างอิง
                                     </p>
                                   )}
                                 </div>
