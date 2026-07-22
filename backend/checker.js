@@ -432,6 +432,18 @@ function checkDocx(buffer) {
             }
 
             if (hasVisibleText) {
+                let isInsideMath = false;
+                let parent = rNode.parentNode;
+                while (parent) {
+                    if (parent.nodeName && parent.nodeName.startsWith('m:')) {
+                        isInsideMath = true;
+                        break;
+                    }
+                    parent = parent.parentNode;
+                }
+
+                if (isInsideMath) continue; // Skip font checking for mathematical equations
+
                 let rPr = rNode.getElementsByTagName('w:rPr')[0];
                 let pPr_rPr = null;
                 const parentP = rNode.parentNode;
