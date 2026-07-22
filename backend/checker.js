@@ -462,9 +462,10 @@ function checkDocx(buffer) {
         }
         
         // Check for 3 formulas and their citations
-        const formula_percent = /ค่าร้อยละ.{0,100}?ใช้สูตรดังนี้\s*:?\s*\([^)]+,\s*\d{4}\)/i.test(fullText);
-        const formula_mean = /ค่าเฉลี่ย.{0,100}?ใช้สูตรดังนี้\s*:?\s*\([^)]+,\s*\d{4}\)/i.test(fullText);
-        const formula_sd = /ส่วนเบี่ยงเบนมาตรฐาน.{0,100}?ใช้สูตรดังนี้\s*:?\s*\([^)]+,\s*\d{4}\)/i.test(fullText);
+        // Reduced lookahead from 100 to 35 characters to prevent matching the citation of a different formula nearby
+        const formula_percent = /ค่าร้อยละ.{0,35}?ใช้สูตรดังนี้\s*:?\s*\([^)]+,\s*\d{4}\)/i.test(fullText);
+        const formula_mean = /ค่าเฉลี่ย.{0,35}?ใช้สูตรดังนี้\s*:?\s*\([^)]+,\s*\d{4}\)/i.test(fullText);
+        const formula_sd = /ส่วนเบี่ยงเบนมาตรฐาน.{0,35}?ใช้สูตรดังนี้\s*:?\s*\([^)]+,\s*\d{4}\)/i.test(fullText);
 
         return {
             chapters: { chap1: hasChap1, chap2: hasChap2, chap3: hasChap3, chap4: hasChap4, chap5: hasChap5 },
