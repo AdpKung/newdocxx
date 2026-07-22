@@ -365,7 +365,8 @@ function checkDocx(buffer) {
                 }
             } else if (isSubtopic) {
                 if (fmt.size !== 16) errs.push(`ขนาด ${fmt.size}pt (กรุณาแก้ไขเป็น 16pt)`);
-                if (!fmt.isBold) errs.push(`ไม่ใช่ตัวหนา (กรุณาทำเป็นตัวหนา)`);
+                // We do not push 'ไม่ใช่ตัวหนา' here because the subtopic logic handles it globally,
+                // preventing false positives when the subtopic is referenced in a TOC list.
                 if (errs.length > 0) {
                     if (formatDetails.length < 15) formatDetails.push(`หัวข้อรอง "${matchedTopicLabel}": ${errs.join(', ')}`);
                     fontSizePass = false;
