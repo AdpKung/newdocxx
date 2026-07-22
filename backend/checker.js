@@ -461,8 +461,14 @@ function checkDocx(buffer) {
                     const ascii = rFonts.getAttribute('w:ascii');
                     const hAnsi = rFonts.getAttribute('w:hAnsi');
                     const fontName = ascii || hAnsi;
-                    if (fontName && !fontName.includes('TH Sarabun')) {
-                        foundFonts.add(fontName);
+                    
+                    if (fontName) {
+                        const isSarabun = fontName.includes('TH Sarabun');
+                        const isMathOrSymbol = fontName.includes('Math') || fontName.includes('Symbol');
+                        
+                        if (!isSarabun && !isMathOrSymbol) {
+                            foundFonts.add(fontName);
+                        }
                     }
                 }
             }
