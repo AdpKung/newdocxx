@@ -140,15 +140,15 @@ function checkDocx(buffer) {
                     let szNode = rPr ? rPr.getElementsByTagName('w:sz')[0] : null;
                     let szCsNode = rPr ? rPr.getElementsByTagName('w:szCs')[0] : null;
          
-                    let valCs = szCsNode ? parseInt(szCsNode.getAttribute('w:val')||'0', 10)/2 : defaultPSize;
-                    let valAscii = szNode ? parseInt(szNode.getAttribute('w:val')||'0', 10)/2 : defaultPSize;
+                    let valCs = szCsNode ? parseInt(szCsNode.getAttribute('w:val')||'0', 10)/2 : 0;
+                    let valAscii = szNode ? parseInt(szNode.getAttribute('w:val')||'0', 10)/2 : 0;
                     
-                    if (valCs !== 16 && valCs > 0) {
-                        sz = valCs;
-                    } else if (valAscii !== 16 && valAscii > 0) {
+                    if (valCs > 0) {
+                        sz = valCs; // Prioritize Thai font size (Complex Scripts)
+                    } else if (valAscii > 0) {
                         sz = valAscii;
                     } else {
-                        if (sz === defaultPSize) sz = 16;
+                        sz = defaultPSize;
                     }
          
                     let runIsBold = defaultPBold;
