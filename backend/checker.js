@@ -140,8 +140,14 @@ function checkDocx(buffer) {
                     if (pPr) pPr_rPr = pPr.getElementsByTagName('w:rPr')[0];
                     
                     let runSz = defaultPSize;
-                    let szNode = rPr ? rPr.getElementsByTagName('w:sz')[0] : (pPr_rPr ? pPr_rPr.getElementsByTagName('w:sz')[0] : null);
-                    let szCsNode = rPr ? rPr.getElementsByTagName('w:szCs')[0] : (pPr_rPr ? pPr_rPr.getElementsByTagName('w:szCs')[0] : null);
+                    
+                    let szNode = null;
+                    if (rPr && rPr.getElementsByTagName('w:sz').length > 0) szNode = rPr.getElementsByTagName('w:sz')[0];
+                    else if (pPr_rPr && pPr_rPr.getElementsByTagName('w:sz').length > 0) szNode = pPr_rPr.getElementsByTagName('w:sz')[0];
+
+                    let szCsNode = null;
+                    if (rPr && rPr.getElementsByTagName('w:szCs').length > 0) szCsNode = rPr.getElementsByTagName('w:szCs')[0];
+                    else if (pPr_rPr && pPr_rPr.getElementsByTagName('w:szCs').length > 0) szCsNode = pPr_rPr.getElementsByTagName('w:szCs')[0];
          
                     let valCs = szCsNode ? parseInt(szCsNode.getAttribute('w:val')||'0', 10)/2 : 0;
                     let valAscii = szNode ? parseInt(szNode.getAttribute('w:val')||'0', 10)/2 : 0;
@@ -155,8 +161,14 @@ function checkDocx(buffer) {
                     }
          
                     let runIsBold = defaultPBold;
-                    let bNode = rPr ? rPr.getElementsByTagName('w:b')[0] : (pPr_rPr ? pPr_rPr.getElementsByTagName('w:b')[0] : null);
-                    let bCsNode = rPr ? rPr.getElementsByTagName('w:bCs')[0] : (pPr_rPr ? pPr_rPr.getElementsByTagName('w:bCs')[0] : null);
+                    
+                    let bNode = null;
+                    if (rPr && rPr.getElementsByTagName('w:b').length > 0) bNode = rPr.getElementsByTagName('w:b')[0];
+                    else if (pPr_rPr && pPr_rPr.getElementsByTagName('w:b').length > 0) bNode = pPr_rPr.getElementsByTagName('w:b')[0];
+
+                    let bCsNode = null;
+                    if (rPr && rPr.getElementsByTagName('w:bCs').length > 0) bCsNode = rPr.getElementsByTagName('w:bCs')[0];
+                    else if (pPr_rPr && pPr_rPr.getElementsByTagName('w:bCs').length > 0) bCsNode = pPr_rPr.getElementsByTagName('w:bCs')[0];
 
                     const checkOnOff = (val) => {
                         if (val === null || val === undefined) return true;
