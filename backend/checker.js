@@ -135,10 +135,13 @@ function checkDocx(buffer) {
                 
                 if (runText.trim().length > 0) {
                     let rPr = runs[r].getElementsByTagName('w:rPr')[0];
+                    let pPr_rPr = null;
+                    const pPr = node.getElementsByTagName('w:pPr')[0];
+                    if (pPr) pPr_rPr = pPr.getElementsByTagName('w:rPr')[0];
                     
                     let runSz = defaultPSize;
-                    let szNode = rPr ? rPr.getElementsByTagName('w:sz')[0] : null;
-                    let szCsNode = rPr ? rPr.getElementsByTagName('w:szCs')[0] : null;
+                    let szNode = rPr ? rPr.getElementsByTagName('w:sz')[0] : (pPr_rPr ? pPr_rPr.getElementsByTagName('w:sz')[0] : null);
+                    let szCsNode = rPr ? rPr.getElementsByTagName('w:szCs')[0] : (pPr_rPr ? pPr_rPr.getElementsByTagName('w:szCs')[0] : null);
          
                     let valCs = szCsNode ? parseInt(szCsNode.getAttribute('w:val')||'0', 10)/2 : 0;
                     let valAscii = szNode ? parseInt(szNode.getAttribute('w:val')||'0', 10)/2 : 0;
@@ -152,8 +155,8 @@ function checkDocx(buffer) {
                     }
          
                     let runIsBold = defaultPBold;
-                    let bNode = rPr ? rPr.getElementsByTagName('w:b')[0] : null;
-                    let bCsNode = rPr ? rPr.getElementsByTagName('w:bCs')[0] : null;
+                    let bNode = rPr ? rPr.getElementsByTagName('w:b')[0] : (pPr_rPr ? pPr_rPr.getElementsByTagName('w:b')[0] : null);
+                    let bCsNode = rPr ? rPr.getElementsByTagName('w:bCs')[0] : (pPr_rPr ? pPr_rPr.getElementsByTagName('w:bCs')[0] : null);
 
                     const checkOnOff = (val) => {
                         if (val === null || val === undefined) return true;
