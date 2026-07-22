@@ -89,9 +89,29 @@ app.post('/api/check', upload.single('file'), (req, res) => {
     if (margin_pass) score += 20;
     
     // Filter subtopics based on docType
-    let returnSubtopics = null;
-    if (docType === 'full' || docType === 'chap1') {
-        returnSubtopics = result.subtopics;
+    let subtopics_chap1 = null;
+    let subtopics_chap3 = null;
+    let formulas = null;
+
+    if (result.subtopics) {
+        subtopics_chap1 = {
+            bg: result.subtopics.bg,
+            obj: result.subtopics.obj,
+            scope: result.subtopics.scope,
+            benefit: result.subtopics.benefit,
+            method: result.subtopics.method,
+            vocab: result.subtopics.vocab
+        };
+        subtopics_chap3 = {
+            population: result.subtopics.population,
+            tools: result.subtopics.tools,
+            collect: result.subtopics.collect,
+            analyze: result.subtopics.analyze
+        };
+    }
+    
+    if (docType === 'full' || docType === 'chap3') {
+        formulas = result.formulas;
     }
 
     const responseData = {
@@ -110,7 +130,9 @@ app.post('/api/check', upload.single('file'), (req, res) => {
             margin_pass: margin_pass,
             margin_details: result.formatting.marginDetails
         },
-        subtopics: returnSubtopics
+        subtopics_chap1: (docType === 'full' || docType === 'chap1') ? subtopics_chap1 : null,
+        subtopics_chap3: (docType === 'full' || docType === 'chap3') ? subtopics_chap3 : null,
+        formulas: formulas
     };
 
     if (userId) {

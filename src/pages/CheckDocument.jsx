@@ -336,10 +336,10 @@ const CheckDocument = () => {
                               )}
                             </div>
                           </div>
-                          {resultData?.details?.chapters_list?.chap1 && resultData.subtopics && (
+                          {resultData?.details?.chapters_list?.chap1 && resultData.subtopics_chap1 && (
                             <div className="subtopic-checks" style={{ paddingLeft: '20px', borderLeft: '2px solid #eee', marginLeft: '10px' }}>
                               <h5 style={{ margin: '10px 0', color: '#555' }}>ผลการตรวจหัวข้อย่อย บทที่ 1:</h5>
-                              {Object.values(resultData.subtopics).every(topic => topic.found && topic.isBold) ? (
+                              {Object.values(resultData.subtopics_chap1).every(topic => topic.found && topic.isBold) ? (
                                 <div className="check-item success" style={{ marginBottom: '8px', padding: '10px' }}>
                                   <CheckCircle2 size={16} className="flex-shrink-0" />
                                   <div>
@@ -347,7 +347,7 @@ const CheckDocument = () => {
                                   </div>
                                 </div>
                               ) : (
-                                Object.values(resultData.subtopics)
+                                Object.values(resultData.subtopics_chap1)
                                   .filter(topic => !topic.found || !topic.isBold)
                                   .map((topic, idx) => (
                                     <div key={idx} className="check-item error" style={{ marginBottom: '8px', padding: '10px' }}>
@@ -407,17 +407,91 @@ const CheckDocument = () => {
                           <div><span>ไม่สามารถตรวจสอบบทที่ 3 ได้</span></div>
                         </div>
                       ) : (
-                        <div className={`check-item ${resultData?.details?.chapters_list?.chap3 ? 'success' : 'error'}`}>
-                          {resultData?.details?.chapters_list?.chap3 ? <CheckCircle2 size={20} className="flex-shrink-0" /> : <AlertCircle size={20} className="flex-shrink-0" />}
-                          <div>
-                            <span>{resultData?.details?.chapters_list?.chap3 ? 'ตรวจพบเนื้อหา บทที่ 3' : 'ไม่พบเนื้อหา บทที่ 3'}</span>
-                            {!resultData?.details?.chapters_list?.chap3 && (
-                              <p className="item-detail" style={{color: '#d32f2f', fontWeight: 'bold'}}>
-                                วิธีแก้ไข: กรุณาเพิ่มหัวข้อ "บทที่ 3" ลงในเอกสารของคุณ
-                              </p>
-                            )}
+                        <>
+                          <div className={`check-item ${resultData?.details?.chapters_list?.chap3 ? 'success' : 'error'}`}>
+                            {resultData?.details?.chapters_list?.chap3 ? <CheckCircle2 size={20} className="flex-shrink-0" /> : <AlertCircle size={20} className="flex-shrink-0" />}
+                            <div>
+                              <span>{resultData?.details?.chapters_list?.chap3 ? 'ตรวจพบเนื้อหา บทที่ 3' : 'ไม่พบเนื้อหา บทที่ 3'}</span>
+                              {!resultData?.details?.chapters_list?.chap3 && (
+                                <p className="item-detail" style={{color: '#d32f2f', fontWeight: 'bold'}}>
+                                  วิธีแก้ไข: กรุณาเพิ่มหัวข้อ "บทที่ 3" ลงในเอกสารของคุณ
+                                </p>
+                              )}
+                            </div>
                           </div>
-                        </div>
+                          {resultData?.details?.chapters_list?.chap3 && resultData.subtopics_chap3 && (
+                            <div className="subtopic-checks" style={{ paddingLeft: '20px', borderLeft: '2px solid #eee', marginLeft: '10px' }}>
+                              <h5 style={{ margin: '10px 0', color: '#555' }}>ผลการตรวจหัวข้อย่อย บทที่ 3:</h5>
+                              {Object.values(resultData.subtopics_chap3).every(topic => topic.found && topic.isBold) ? (
+                                <div className="check-item success" style={{ marginBottom: '8px', padding: '10px' }}>
+                                  <CheckCircle2 size={16} className="flex-shrink-0" />
+                                  <div>
+                                    <span style={{ fontSize: '0.95rem', color: '#2e7d32', fontWeight: 'bold' }}>พบหัวข้อย่อยครบถ้วนและถูกต้องทั้งหมด</span>
+                                  </div>
+                                </div>
+                              ) : (
+                                Object.values(resultData.subtopics_chap3)
+                                  .filter(topic => !topic.found || !topic.isBold)
+                                  .map((topic, idx) => (
+                                    <div key={idx} className="check-item error" style={{ marginBottom: '8px', padding: '10px' }}>
+                                      <AlertCircle size={16} className="flex-shrink-0" />
+                                      <div>
+                                        <span style={{ fontSize: '0.95rem' }}>หัวข้อ "{topic.label}"</span>
+                                        <p className="item-detail" style={{ fontSize: '0.85rem', marginTop: '4px' }}>
+                                          {!topic.found ? (
+                                            <span style={{color: '#d32f2f', fontWeight: 'bold'}}>วิธีแก้ไข: ขาดหัวข้อนี้ กรุณาพิมพ์ "{topic.label}" ลงในเอกสารและทำตัวหนา</span>
+                                          ) : (
+                                            <span style={{color: '#d32f2f', fontWeight: 'bold'}}>วิธีแก้ไข: พบหัวข้อแล้ว แต่ลืมทำตัวหนา กรุณาคลุมดำข้อความและกด Ctrl+B (ทำตัวหนา)</span>
+                                          )}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  ))
+                              )}
+                            </div>
+                          )}
+                          {resultData?.details?.chapters_list?.chap3 && resultData.formulas && (
+                            <div className="subtopic-checks" style={{ paddingLeft: '20px', borderLeft: '2px solid #eee', marginLeft: '10px', marginTop: '15px' }}>
+                              <h5 style={{ margin: '10px 0', color: '#555' }}>ผลการตรวจสูตรสถิติและอ้างอิง:</h5>
+                              
+                              <div className={`check-item ${resultData.formulas.percent ? 'success' : 'error'}`} style={{ marginBottom: '8px', padding: '10px' }}>
+                                {resultData.formulas.percent ? <CheckCircle2 size={16} className="flex-shrink-0" /> : <AlertCircle size={16} className="flex-shrink-0" />}
+                                <div>
+                                  <span style={{ fontSize: '0.95rem', color: resultData.formulas.percent ? '#2e7d32' : '#d32f2f' }}>1. สูตรร้อยละ (Percentage)</span>
+                                  {!resultData.formulas.percent && (
+                                    <p className="item-detail" style={{ fontSize: '0.85rem', marginTop: '4px', color: '#d32f2f', fontWeight: 'bold' }}>
+                                      วิธีแก้ไข: ไม่พบสูตรร้อยละ หรือขาดการอ้างอิง กรุณาเติมประโยค "ใช้สูตรดังนี้ (ชื่อ, ปี)" เช่น "ใช้สูตรดังนี้: (บุญชม ศรีสะอาด, 2556)"
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                              
+                              <div className={`check-item ${resultData.formulas.mean ? 'success' : 'error'}`} style={{ marginBottom: '8px', padding: '10px' }}>
+                                {resultData.formulas.mean ? <CheckCircle2 size={16} className="flex-shrink-0" /> : <AlertCircle size={16} className="flex-shrink-0" />}
+                                <div>
+                                  <span style={{ fontSize: '0.95rem', color: resultData.formulas.mean ? '#2e7d32' : '#d32f2f' }}>2. สูตรค่าเฉลี่ย (Mean)</span>
+                                  {!resultData.formulas.mean && (
+                                    <p className="item-detail" style={{ fontSize: '0.85rem', marginTop: '4px', color: '#d32f2f', fontWeight: 'bold' }}>
+                                      วิธีแก้ไข: ไม่พบสูตรค่าเฉลี่ย หรือขาดการอ้างอิง กรุณาเติมประโยค "ใช้สูตรดังนี้ (ชื่อ, ปี)" เช่น "ใช้สูตรดังนี้: (บุญชม ศรีสะอาด, 2556)"
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                              
+                              <div className={`check-item ${resultData.formulas.sd ? 'success' : 'error'}`} style={{ marginBottom: '8px', padding: '10px' }}>
+                                {resultData.formulas.sd ? <CheckCircle2 size={16} className="flex-shrink-0" /> : <AlertCircle size={16} className="flex-shrink-0" />}
+                                <div>
+                                  <span style={{ fontSize: '0.95rem', color: resultData.formulas.sd ? '#2e7d32' : '#d32f2f' }}>3. สูตรส่วนเบี่ยงเบนมาตรฐาน (S.D.)</span>
+                                  {!resultData.formulas.sd && (
+                                    <p className="item-detail" style={{ fontSize: '0.85rem', marginTop: '4px', color: '#d32f2f', fontWeight: 'bold' }}>
+                                      วิธีแก้ไข: ไม่พบสูตร S.D. หรือขาดการอ้างอิง กรุณาเติมประโยค "ใช้สูตรดังนี้ (ชื่อ, ปี)" เช่น "ใช้สูตรดังนี้: (บุญชม ศรีสะอาด, 2556)"
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </>
                       )}
                     </div>
                     )}

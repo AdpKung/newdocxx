@@ -196,12 +196,18 @@ function checkDocx(buffer) {
         let fullText = '';
         
         let subtopicsData = {
+            // Chap 1
             bg: { found: false, isBold: false, label: 'ความเป็นมาของโครงการ' },
             obj: { found: false, isBold: false, label: 'วัตถุประสงค์ของโครงการ' },
             scope: { found: false, isBold: false, label: 'ขอบเขตของโครงการ' },
             benefit: { found: false, isBold: false, label: 'ประโยชน์ที่ได้รับ' },
             method: { found: false, isBold: false, label: 'วิธีการดำเนินการ' },
-            vocab: { found: false, isBold: false, label: 'นิยามศัพท์' }
+            vocab: { found: false, isBold: false, label: 'นิยามศัพท์' },
+            // Chap 3
+            population: { found: false, isBold: false, label: 'ประชากรและกลุ่มตัวอย่าง' },
+            tools: { found: false, isBold: false, label: 'เครื่องมือที่ใช้ในการวิจัย' },
+            collect: { found: false, isBold: false, label: 'การเก็บรวบรวมข้อมูล' },
+            analyze: { found: false, isBold: false, label: 'การวิเคราะห์ข้อมูล' }
         };
 
         const topicsToFind = [
@@ -210,7 +216,11 @@ function checkDocx(buffer) {
             { id: 'scope', match: ['ขอบเขตของโครงการ', 'ขอบเขตของโครงงาน', 'ขอบเขต'] },
             { id: 'benefit', match: ['ประโยชน์ที่ได้รับ', 'ประโยชน์ที่คาดว่าจะได้รับ'] },
             { id: 'method', match: ['วิธีการดำเนินการ', 'วิธีดำเนินการ'] },
-            { id: 'vocab', match: ['นิยามศัพท์'] }
+            { id: 'vocab', match: ['นิยามศัพท์'] },
+            { id: 'population', match: ['ประชากรและกลุ่มตัวอย่าง'] },
+            { id: 'tools', match: ['เครื่องมือที่ใช้ในการวิจัย', 'เครื่องมือที่ใช้ในการดำเนินงาน', 'เครื่องมือที่ใช้'] },
+            { id: 'collect', match: ['การเก็บรวบรวมข้อมูล'] },
+            { id: 'analyze', match: ['การวิเคราะห์ข้อมูล'] }
         ];
 
         let formatDetails = [];
@@ -451,6 +461,11 @@ function checkDocx(buffer) {
             fontDetails.push(`พบการใช้งานฟอนต์อื่น: ${Array.from(foundFonts).join(', ')}`);
         }
         
+        // Check for 3 formulas and their citations
+        const formula_percent = /ค่าร้อยละ.{0,100}?ใช้สูตรดังนี้\s*:?\s*\([^)]+,\s*\d{4}\)/i.test(fullText);
+        const formula_mean = /ค่าเฉลี่ย.{0,100}?ใช้สูตรดังนี้\s*:?\s*\([^)]+,\s*\d{4}\)/i.test(fullText);
+        const formula_sd = /ส่วนเบี่ยงเบนมาตรฐาน.{0,100}?ใช้สูตรดังนี้\s*:?\s*\([^)]+,\s*\d{4}\)/i.test(fullText);
+
         return {
             chapters: { chap1: hasChap1, chap2: hasChap2, chap3: hasChap3, chap4: hasChap4, chap5: hasChap5 },
             isBlank: isBlank,
@@ -462,7 +477,12 @@ function checkDocx(buffer) {
                 fontSizePass,
                 sizeDetails
             },
-            subtopics: subtopicsData
+            subtopics: subtopicsData,
+            formulas: {
+                percent: formula_percent,
+                mean: formula_mean,
+                sd: formula_sd
+            }
         };
 
     } catch (e) {
