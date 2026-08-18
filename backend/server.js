@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 const { checkDocx } = require('./checker');
 
 const app = express();
@@ -152,10 +153,14 @@ app.post('/api/check', upload.single('file'), (req, res) => {
         db.run(`INSERT INTO history (user_id, file_name, score_percent, status, message, details) VALUES (?, ?, ?, ?, ?, ?)`, 
         [userId, originalName, responseData.scorePercent, responseData.status, responseData.message, JSON.stringify(responseData.details)], function(err) {
             if (err) console.error("Failed to save history", err);
+            
+            // Add historyId to response
+            responseData.historyId = this ? this.lastID : null;
+            res.json(responseData);
         });
+    } else {
+        res.json(responseData);
     }
-
-    res.json(responseData);
 });
 
 // --- AUTH API ---
@@ -269,6 +274,69 @@ app.delete('/api/admin/users/:id', checkAdmin, (req, res) => {
     });
 });
 
+
+// --- PDF SUBMISSION ENDPOINTS ---
+app.post('/api/submit-pdf', upload.single('pdf'), (req, res) => {
+    if (!req.file) return res.status(400).json({ error: 'No PDF file uploaded' });
+    
+    const { userId, historyId } = req.body;
+    if (!userId || !historyId) return res.status(400).json({ error: 'Missing required fields' });
+
+    let originalName = req.file.originalname;
+    try { originalName = Buffer.from(originalName, 'latin1').toString('utf8'); } catch (e) {}
+
+    if (!originalName.toLowerCase().endsWith('.pdf')) {
+        return res.status(400).json({ error: 'ต้องเป็นไฟล์ .pdf เท่านั้น' });
+    }
+
+    // Verify 100% score
+    db.get(`SELECT score_percent FROM history WHERE id = ? AND user_id = ?`, [historyId, userId], (err, row) => {
+        if (err || !row) return res.status(404).json({ error: 'History not found' });
+        if (row.score_percent < 100) return res.status(403).json({ error: 'ต้องได้คะแนน 100% ถึงจะส่งไฟล์ PDF ได้' });
+
+        // Save file
+        const timestamp = Date.now();
+        const safeName = originalName.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+        const filename = `${historyId}_${timestamp}_${safeName}`;
+        const filepath = path.join(__dirname, 'uploads', 'submissions', filename);
+
+        fs.writeFile(filepath, req.file.buffer, (err) => {
+            if (err) return res.status(500).json({ error: 'Failed to save file' });
+
+            db.run(`INSERT INTO submissions (user_id, history_id, pdf_name, pdf_path) VALUES (?, ?, ?, ?)`, 
+            [userId, historyId, originalName, filepath], function(err) {
+                if (err) return res.status(500).json({ error: 'Failed to save submission record' });
+                res.json({ message: 'Submission successful', submissionId: this.lastID });
+            });
+        });
+    });
+});
+
+app.get('/api/admin/submissions', checkAdmin, (req, res) => {
+    const query = `
+        SELECT s.id, s.pdf_name, s.created_at, u.name as user_name, u.email as user_email, h.file_name as docx_name 
+        FROM submissions s 
+        JOIN users u ON s.user_id = u.id 
+        JOIN history h ON s.history_id = h.id 
+        ORDER BY s.created_at DESC
+    `;
+    db.all(query, [], (err, rows) => {
+        if (err) return res.status(500).json({ error: 'Database error' });
+        res.json(rows);
+    });
+});
+
+app.get('/api/download-pdf/:id', checkAdmin, (req, res) => {
+    db.get(`SELECT pdf_path, pdf_name FROM submissions WHERE id = ?`, [req.params.id], (err, row) => {
+        if (err || !row) return res.status(404).json({ error: 'Submission not found' });
+        
+        if (fs.existsSync(row.pdf_path)) {
+            res.download(row.pdf_path, row.pdf_name);
+        } else {
+            res.status(404).json({ error: 'File not found on disk' });
+        }
+    });
+});
 
 // --- DEPLOYMENT: Serve Frontend ---
 app.use(express.static(path.join(__dirname, '../dist')));

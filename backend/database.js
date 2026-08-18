@@ -28,17 +28,26 @@ pool.connect(async (err, client, release) => {
 
         await client.query(`UPDATE users SET role = 'admin' WHERE email = 'admin@gmail.com'`);
 
-        await client.query(`CREATE TABLE IF NOT EXISTS history (
-            id SERIAL PRIMARY KEY,
-            user_id INTEGER NOT NULL REFERENCES users(id),
-            file_name VARCHAR(255) NOT NULL,
-            score_percent INTEGER NOT NULL,
-            status VARCHAR(50) NOT NULL,
-            message TEXT,
-            details TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )`);
-    } catch (e) {
+            await client.query(`CREATE TABLE IF NOT EXISTS history (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL REFERENCES users(id),
+                file_name VARCHAR(255) NOT NULL,
+                score_percent INTEGER NOT NULL,
+                status VARCHAR(50) NOT NULL,
+                message TEXT,
+                details TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )`);
+
+            await client.query(`CREATE TABLE IF NOT EXISTS submissions (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL REFERENCES users(id),
+                history_id INTEGER NOT NULL REFERENCES history(id),
+                pdf_name VARCHAR(255) NOT NULL,
+                pdf_path VARCHAR(255) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )`);
+        } catch (e) {
         console.error("Error initializing tables", e);
     } finally {
         release();

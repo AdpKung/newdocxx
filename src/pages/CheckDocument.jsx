@@ -11,6 +11,9 @@ const CheckDocument = () => {
   const [status, setStatus] = useState('idle'); // idle, processing, result
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const [resultData, setResultData] = useState(null);
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [pdfFile, setPdfFile] = useState(null);
+  const [submitStatus, setSubmitStatus] = useState('idle'); // idle, uploading, success, error
   const { user } = useContext(AuthContext);
 
   const validationSteps = [
@@ -94,6 +97,39 @@ const CheckDocument = () => {
     setStatus('idle');
     setActiveStepIndex(0);
     setResultData(null);
+    setShowSubmitModal(false);
+    setPdfFile(null);
+    setSubmitStatus('idle');
+  };
+
+  const handlePdfSubmit = async () => {
+    if (!pdfFile || !resultData || !resultData.historyId || !user) return;
+    
+    setSubmitStatus('uploading');
+    const formData = new FormData();
+    formData.append('pdf', pdfFile);
+    formData.append('historyId', resultData.historyId);
+    formData.append('userId', user.id);
+
+    try {
+      const response = await fetch('/api/submit-pdf', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        setSubmitStatus('success');
+        setTimeout(() => setShowSubmitModal(false), 2000);
+      } else {
+        const err = await response.json();
+        alert(err.error || 'เกิดข้อผิดพลาดในการส่งไฟล์');
+        setSubmitStatus('error');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้');
+      setSubmitStatus('error');
+    }
   };
 
   let scorePercent = 0;
@@ -304,6 +340,11 @@ const CheckDocument = () => {
                   <button className="btn btn-primary" disabled={isEmpty || isError}>
                     <Download size={18} /> โหลดรายงาน (PDF)
                   </button>
+                  {scorePercent === 100 && (
+                    <button className="btn btn-success" onClick={() => setShowSubmitModal(true)} style={{ backgroundColor: '#10b981', color: 'white', border: 'none' }}>
+                      <UploadCloud size={18} /> ส่งเอกสารฉบับสมบูรณ์ (PDF)
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -687,6 +728,57 @@ const CheckDocument = () => {
                 </div>
               </div>
             </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Submit PDF Modal */}
+        <AnimatePresence>
+          {showSubmitModal && (
+            <div className="modal-overlay" onClick={() => setShowSubmitModal(false)} style={{
+              position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center'
+            }}>
+              <motion.div 
+                className="modal-content glass-panel" 
+                onClick={e => e.stopPropagation()}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                style={{ padding: '2rem', maxWidth: '500px', width: '90%', borderRadius: '20px', position: 'relative' }}
+              >
+                <h3 style={{ marginBottom: '1rem', color: '#1e293b' }}>ส่งเอกสารฉบับสมบูรณ์ (PDF)</h3>
+                <p style={{ color: '#64748b', marginBottom: '1.5rem', lineHeight: '1.6' }}>
+                  เอกสารของคุณผ่านการตรวจสอบ 100% แล้ว! กรุณาอัปโหลดไฟล์ในรูปแบบ <strong>.pdf</strong> เพื่อส่งให้อาจารย์/แอดมินพิจารณา
+                </p>
+                
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <label className="btn btn-outline" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', width: '100%', padding: '1rem', cursor: 'pointer', border: '2px dashed #cbd5e1', borderRadius: '12px' }}>
+                    <FileType size={20} />
+                    {pdfFile ? pdfFile.name : 'เลือกไฟล์ PDF'}
+                    <input type="file" accept=".pdf" onChange={(e) => {
+                      if(e.target.files && e.target.files.length > 0) setPdfFile(e.target.files[0]);
+                    }} hidden />
+                  </label>
+                </div>
+
+                {submitStatus === 'success' && (
+                  <div className="check-item success" style={{ marginBottom: '1rem', justifyContent: 'center' }}>
+                    <CheckCircle2 size={20} /> <span>ส่งเอกสารสำเร็จแล้ว!</span>
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+                  <button className="btn btn-text" onClick={() => setShowSubmitModal(false)}>ยกเลิก</button>
+                  <button 
+                    className="btn btn-primary" 
+                    onClick={handlePdfSubmit} 
+                    disabled={!pdfFile || submitStatus === 'uploading' || submitStatus === 'success'}
+                    style={{ backgroundColor: '#10b981', border: 'none' }}
+                  >
+                    {submitStatus === 'uploading' ? <><Loader2 size={18} className="spin" /> กำลังส่ง...</> : 'ยืนยันการส่ง'}
+                  </button>
+                </div>
+              </motion.div>
+            </div>
           )}
         </AnimatePresence>
       </div>

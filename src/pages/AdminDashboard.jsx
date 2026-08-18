@@ -8,8 +8,10 @@ const AdminDashboard = () => {
     const { user } = useContext(AuthContext);
     const [usersList, setUsersList] = useState([]);
     const [stats, setStats] = useState(null);
+    const [submissions, setSubmissions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [activeTab, setActiveTab] = useState('users'); // 'users' | 'submissions'
     
     // Modal states
     const [selectedUser, setSelectedUser] = useState(null);
@@ -25,16 +27,19 @@ const AdminDashboard = () => {
     const fetchData = async () => {
         try {
             setLoading(true);
-            const [usersRes, statsRes] = await Promise.all([
+            const [usersRes, statsRes, subRes] = await Promise.all([
                 fetch('/api/admin/users', { headers: { 'admin-id': user.id } }),
-                fetch('/api/admin/stats', { headers: { 'admin-id': user.id } })
+                fetch('/api/admin/stats', { headers: { 'admin-id': user.id } }),
+                fetch('/api/admin/submissions', { headers: { 'admin-id': user.id } })
             ]);
             
-            if (usersRes.ok && statsRes.ok) {
+            if (usersRes.ok && statsRes.ok && subRes.ok) {
                 const usersData = await usersRes.json();
                 const statsData = await statsRes.json();
+                const subData = await subRes.json();
                 setUsersList(usersData);
                 setStats(statsData);
+                setSubmissions(subData);
             } else {
                 setError('Failed to fetch data');
             }
@@ -125,8 +130,23 @@ const AdminDashboard = () => {
                     ระบบจัดการผู้ใช้ (Admin)
                 </h1>
             </div>
+
+            <div className="admin-tabs" style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
+                <button 
+                    className={`btn ${activeTab === 'users' ? 'btn-primary' : 'btn-outline'}`} 
+                    onClick={() => setActiveTab('users')}
+                >
+                    <Users size={18} /> จัดการผู้ใช้
+                </button>
+                <button 
+                    className={`btn ${activeTab === 'submissions' ? 'btn-primary' : 'btn-outline'}`} 
+                    onClick={() => setActiveTab('submissions')}
+                >
+                    <CheckCircle size={18} /> เอกสารที่ส่งมาแล้ว
+                </button>
+            </div>
             
-            {stats && (
+            {activeTab === 'users' && stats && (
                 <div className="admin-stats-grid">
                     <div className="stat-card">
                         <div className="stat-icon" style={{ backgroundColor: '#e0e7ff', color: '#4f46e5' }}>
@@ -174,7 +194,7 @@ const AdminDashboard = () => {
                     </div>
                 ) : error ? (
                     <div style={{ color: '#ef4444', textAlign: 'center', padding: '2rem' }}>{error}</div>
-                ) : (
+                ) : activeTab === 'users' ? (
                     <div className="admin-table-container">
                         <table className="admin-table">
                             <thead>
@@ -241,6 +261,53 @@ const AdminDashboard = () => {
                                     <tr>
                                         <td colSpan="6" style={{ textAlign: 'center', padding: '3rem' }}>
                                             ไม่พบข้อมูลผู้ใช้
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                ) : (
+                    <div className="admin-table-container">
+                        <table className="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>ชื่อนักศึกษา</th>
+                                    <th>ไฟล์ Word อ้างอิง</th>
+                                    <th>ไฟล์ PDF ที่ส่ง</th>
+                                    <th>วันที่ส่ง</th>
+                                    <th style={{ textAlign: 'right' }}>จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {submissions.map((s) => (
+                                    <tr key={s.id}>
+                                        <td>#{s.id}</td>
+                                        <td style={{ fontWeight: 600, color: '#111827' }}>
+                                            {s.user_name} <br/>
+                                            <span style={{ fontSize: '0.85rem', color: '#6b7280', fontWeight: 'normal' }}>{s.user_email}</span>
+                                        </td>
+                                        <td style={{ color: '#4b5563' }}>{s.docx_name}</td>
+                                        <td style={{ color: '#10b981', fontWeight: 500 }}>{s.pdf_name}</td>
+                                        <td style={{ color: '#4b5563' }}>{new Date(s.created_at).toLocaleString('th-TH')}</td>
+                                        <td style={{ textAlign: 'right' }}>
+                                            <a 
+                                                href={`/api/download-pdf/${s.id}`} 
+                                                target="_blank" 
+                                                rel="noreferrer"
+                                                className="btn btn-outline"
+                                                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 1rem' }}
+                                            >
+                                                <Download size={16} /> โหลด PDF
+                                            </a>
+                                        </td>
+                                    </tr>
+                                ))}
+                                {submissions.length === 0 && (
+                                    <tr>
+                                        <td colSpan="6" style={{ textAlign: 'center', padding: '3rem' }}>
+                                            ยังไม่มีการส่งเอกสาร
                                         </td>
                                     </tr>
                                 )}
