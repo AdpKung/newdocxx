@@ -212,7 +212,10 @@ function checkDocx(buffer) {
             population: { found: false, isBold: false, label: 'ประชากรและกลุ่มตัวอย่าง' },
             tools: { found: false, isBold: false, label: 'เครื่องมือที่ใช้ในการวิจัย' },
             collect: { found: false, isBold: false, label: 'การเก็บรวบรวมข้อมูล' },
-            analyze: { found: false, isBold: false, label: 'การวิเคราะห์ข้อมูล' }
+            analyze: { found: false, isBold: false, label: 'การวิเคราะห์ข้อมูล' },
+            // Chap 4
+            experiment: { found: false, isBold: false, label: 'วิธีการทดลอง' },
+            result: { found: false, isBold: false, label: 'ผลการทดลอง' }
         };
 
         const topicsToFind = [
@@ -225,7 +228,9 @@ function checkDocx(buffer) {
             { id: 'population', match: ['ประชากรและกลุ่มตัวอย่าง'] },
             { id: 'tools', match: ['เครื่องมือที่ใช้ในการวิจัย', 'เครื่องมือที่ใช้ในการดำเนินงาน', 'เครื่องมือที่ใช้'] },
             { id: 'collect', match: ['การเก็บรวบรวมข้อมูล'] },
-            { id: 'analyze', match: ['การวิเคราะห์ข้อมูล'] }
+            { id: 'analyze', match: ['การวิเคราะห์ข้อมูล'] },
+            { id: 'experiment', match: ['วิธีการทดลอง', 'วิธีทดลอง', 'วิธีการ/ขั้นตอนทดสอบ'] },
+            { id: 'result', match: ['ผลการทดลอง', 'ผลการวิเคราะห์'] }
         ];
 
         let formatDetails = [];

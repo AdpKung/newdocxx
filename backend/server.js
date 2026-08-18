@@ -91,6 +91,7 @@ app.post('/api/check', upload.single('file'), (req, res) => {
     // Filter subtopics based on docType
     let subtopics_chap1 = null;
     let subtopics_chap3 = null;
+    let subtopics_chap4 = null;
     let formulas = null;
 
     if (result.subtopics) {
@@ -107,6 +108,10 @@ app.post('/api/check', upload.single('file'), (req, res) => {
             tools: result.subtopics.tools,
             collect: result.subtopics.collect,
             analyze: result.subtopics.analyze
+        };
+        subtopics_chap4 = {
+            experiment: result.subtopics.experiment,
+            result: result.subtopics.result
         };
     }
     
@@ -132,6 +137,7 @@ app.post('/api/check', upload.single('file'), (req, res) => {
         },
         subtopics_chap1: (docType === 'full' || docType === 'chap1') ? subtopics_chap1 : null,
         subtopics_chap3: (docType === 'full' || docType === 'chap3') ? subtopics_chap3 : null,
+        subtopics_chap4: (docType === 'full' || docType === 'chap4') ? subtopics_chap4 : null,
         formulas: formulas
     };
 
