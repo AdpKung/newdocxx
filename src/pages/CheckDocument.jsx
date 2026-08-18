@@ -550,6 +550,7 @@ const CheckDocument = () => {
                             </div>
                           )}
                         </>
+                      )}
                     </div>
                     )}
 
