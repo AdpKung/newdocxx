@@ -215,7 +215,11 @@ function checkDocx(buffer) {
             analyze: { found: false, isBold: false, label: 'การวิเคราะห์ข้อมูล' },
             // Chap 4
             experiment: { found: false, isBold: false, label: 'วิธีการทดลอง' },
-            result: { found: false, isBold: false, label: 'ผลการทดลอง' }
+            result: { found: false, isBold: false, label: 'ผลการทดลอง' },
+            // Chap 5
+            conclusion: { found: false, isBold: false, label: 'สรุปผลการทดลอง' },
+            problems: { found: false, isBold: false, label: 'ปัญหาและอุปสรรคในการทดลอง' },
+            suggestions: { found: false, isBold: false, label: 'ข้อเสนอแนะและแนวทางในการพัฒนา' }
         };
 
         const topicsToFind = [
@@ -230,7 +234,10 @@ function checkDocx(buffer) {
             { id: 'collect', match: ['การเก็บรวบรวมข้อมูล'] },
             { id: 'analyze', match: ['การวิเคราะห์ข้อมูล'] },
             { id: 'experiment', match: ['วิธีการทดลอง', 'วิธีทดลอง', 'วิธีการ/ขั้นตอนทดสอบ'] },
-            { id: 'result', match: ['ผลการทดลอง', 'ผลการวิเคราะห์'] }
+            { id: 'result', match: ['ผลการทดลอง', 'ผลการวิเคราะห์'] },
+            { id: 'conclusion', match: ['สรุปผลการทดลอง', 'สรุปผลการวิจัย', 'สรุปผลการดำเนินงาน'] },
+            { id: 'problems', match: ['ปัญหาและอุปสรรค', 'ปัญหาและอุปสรรคในการทดลอง'] },
+            { id: 'suggestions', match: ['ข้อเสนอแนะ', 'ข้อเสนอแนะและแนวทางในการพัฒนา', 'ข้อเสนอแนะและแนวทางมนการพัฒนา'] }
         ];
 
         let formatDetails = [];

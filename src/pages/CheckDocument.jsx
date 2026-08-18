@@ -564,17 +564,50 @@ const CheckDocument = () => {
                           <div><span>ไม่สามารถตรวจสอบบทที่ 5 ได้</span></div>
                         </div>
                       ) : (
-                        <div className={`check-item ${resultData?.details?.chapters_list?.chap5 ? 'success' : 'error'}`}>
-                          {resultData?.details?.chapters_list?.chap5 ? <CheckCircle2 size={20} className="flex-shrink-0" /> : <AlertCircle size={20} className="flex-shrink-0" />}
-                          <div>
-                            <span>{resultData?.details?.chapters_list?.chap5 ? 'ตรวจพบเนื้อหา บทที่ 5' : 'ไม่พบเนื้อหา บทที่ 5'}</span>
-                            {!resultData?.details?.chapters_list?.chap5 && (
-                              <p className="item-detail" style={{color: '#d32f2f', fontWeight: 'bold'}}>
-                                วิธีแก้ไข: กรุณาเพิ่มหัวข้อ "บทที่ 5" ลงในเอกสารของคุณ
-                              </p>
-                            )}
+                        <>
+                          <div className={`check-item ${resultData?.details?.chapters_list?.chap5 ? 'success' : 'error'}`}>
+                            {resultData?.details?.chapters_list?.chap5 ? <CheckCircle2 size={20} className="flex-shrink-0" /> : <AlertCircle size={20} className="flex-shrink-0" />}
+                            <div>
+                              <span>{resultData?.details?.chapters_list?.chap5 ? 'ตรวจพบเนื้อหา บทที่ 5' : 'ไม่พบเนื้อหา บทที่ 5'}</span>
+                              {!resultData?.details?.chapters_list?.chap5 && (
+                                <p className="item-detail" style={{color: '#d32f2f', fontWeight: 'bold'}}>
+                                  วิธีแก้ไข: กรุณาเพิ่มหัวข้อ "บทที่ 5" ลงในเอกสารของคุณ
+                                </p>
+                              )}
+                            </div>
                           </div>
-                        </div>
+                          {resultData?.details?.chapters_list?.chap5 && resultData.subtopics_chap5 && (
+                            <div className="subtopic-checks" style={{ paddingLeft: '20px', borderLeft: '2px solid #eee', marginLeft: '10px' }}>
+                              <h5 style={{ margin: '10px 0', color: '#555' }}>ผลการตรวจหัวข้อย่อย บทที่ 5:</h5>
+                              {Object.values(resultData.subtopics_chap5).every(topic => topic.found && topic.isBold) ? (
+                                <div className="check-item success" style={{ marginBottom: '8px', padding: '10px' }}>
+                                  <CheckCircle2 size={16} className="flex-shrink-0" />
+                                  <div>
+                                    <span style={{ fontSize: '0.95rem', color: '#2e7d32', fontWeight: 'bold' }}>พบหัวข้อย่อยครบถ้วนและถูกต้องทั้งหมด</span>
+                                  </div>
+                                </div>
+                              ) : (
+                                Object.values(resultData.subtopics_chap5)
+                                  .filter(topic => !topic.found || !topic.isBold)
+                                  .map((topic, idx) => (
+                                    <div key={idx} className="check-item error" style={{ marginBottom: '8px', padding: '10px' }}>
+                                      <AlertCircle size={16} className="flex-shrink-0" />
+                                      <div>
+                                        <span style={{ fontSize: '0.95rem' }}>หัวข้อ "{topic.label}"</span>
+                                        <p className="item-detail" style={{ fontSize: '0.85rem', marginTop: '4px' }}>
+                                          {!topic.found ? (
+                                            <span style={{color: '#d32f2f', fontWeight: 'bold'}}>วิธีแก้ไข: ขาดหัวข้อนี้ กรุณาพิมพ์ "{topic.label}" ลงในเอกสารและทำตัวหนา</span>
+                                          ) : (
+                                            <span style={{color: '#d32f2f', fontWeight: 'bold'}}>วิธีแก้ไข: พบหัวข้อแล้ว แต่ลืมทำตัวหนา กรุณาคลุมดำข้อความและกด Ctrl+B (ทำตัวหนา)</span>
+                                          )}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  ))
+                              )}
+                            </div>
+                          )}
+                        </>
                       )}
                     </div>
                     )}

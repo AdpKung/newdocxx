@@ -92,6 +92,7 @@ app.post('/api/check', upload.single('file'), (req, res) => {
     let subtopics_chap1 = null;
     let subtopics_chap3 = null;
     let subtopics_chap4 = null;
+    let subtopics_chap5 = null;
     let formulas = null;
 
     if (result.subtopics) {
@@ -112,6 +113,11 @@ app.post('/api/check', upload.single('file'), (req, res) => {
         subtopics_chap4 = {
             experiment: result.subtopics.experiment,
             result: result.subtopics.result
+        };
+        subtopics_chap5 = {
+            conclusion: result.subtopics.conclusion,
+            problems: result.subtopics.problems,
+            suggestions: result.subtopics.suggestions
         };
     }
     
@@ -138,6 +144,7 @@ app.post('/api/check', upload.single('file'), (req, res) => {
         subtopics_chap1: (docType === 'full' || docType === 'chap1') ? subtopics_chap1 : null,
         subtopics_chap3: (docType === 'full' || docType === 'chap3') ? subtopics_chap3 : null,
         subtopics_chap4: (docType === 'full' || docType === 'chap4') ? subtopics_chap4 : null,
+        subtopics_chap5: (docType === 'full' || docType === 'chap5') ? subtopics_chap5 : null,
         formulas: formulas
     };
 
