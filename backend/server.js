@@ -213,7 +213,7 @@ app.get('/api/history', (req, res) => {
 // Middleware to check if user is admin would normally go here, but for simplicity we rely on frontend sending role (or in production, use JWT)
 // Since we don't have JWT, we will check the role by userId in the DB for security
 const checkAdmin = (req, res, next) => {
-    const adminId = req.headers['admin-id'];
+    const adminId = req.headers['admin-id'] || req.query.adminId;
     if (!adminId) return res.status(403).json({ error: 'Unauthorized' });
     
     db.get(`SELECT role FROM users WHERE id = ?`, [adminId], (err, user) => {

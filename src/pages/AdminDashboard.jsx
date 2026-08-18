@@ -293,7 +293,7 @@ const AdminDashboard = () => {
                                         <td style={{ color: '#4b5563' }}>{new Date(s.created_at).toLocaleString('th-TH')}</td>
                                         <td style={{ textAlign: 'right' }}>
                                             <a 
-                                                href={`/api/download-pdf/${s.id}`} 
+                                                href={`/api/download-pdf/${s.id}?adminId=${user.id}`} 
                                                 target="_blank" 
                                                 rel="noreferrer"
                                                 className="btn btn-outline"
