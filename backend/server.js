@@ -298,14 +298,26 @@ app.post('/api/submit-pdf', upload.single('pdf'), (req, res) => {
         const timestamp = Date.now();
         const safeName = originalName.replace(/[^a-zA-Z0-9.\-_]/g, '_');
         const filename = `${historyId}_${timestamp}_${safeName}`;
-        const filepath = path.join(__dirname, 'uploads', 'submissions', filename);
+        const submissionsDir = path.join(__dirname, 'uploads', 'submissions');
+        const filepath = path.join(submissionsDir, filename);
+
+        // Ensure directory exists
+        if (!fs.existsSync(submissionsDir)) {
+            fs.mkdirSync(submissionsDir, { recursive: true });
+        }
 
         fs.writeFile(filepath, req.file.buffer, (err) => {
-            if (err) return res.status(500).json({ error: 'Failed to save file' });
+            if (err) {
+                console.error("Write error:", err);
+                return res.status(500).json({ error: 'Failed to save file: ' + err.message });
+            }
 
             db.run(`INSERT INTO submissions (user_id, history_id, pdf_name, pdf_path) VALUES (?, ?, ?, ?)`, 
             [userId, historyId, originalName, filepath], function(err) {
-                if (err) return res.status(500).json({ error: 'Failed to save submission record' });
+                if (err) {
+                    console.error("DB error:", err);
+                    return res.status(500).json({ error: 'Failed to save submission record' });
+                }
                 res.json({ message: 'Submission successful', submissionId: this.lastID });
             });
         });
