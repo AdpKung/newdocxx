@@ -217,7 +217,7 @@ function checkDocx(buffer) {
             experiment: { found: false, isBold: false, label: 'วิธีการทดลอง' },
             result: { found: false, isBold: false, label: 'ผลการทดลอง' },
             // Chap 5
-            conclusion: { found: false, isBold: false, label: 'สรุปผลการทดลอง' },
+            conclusion: { found: false, isBold: false, label: 'สรุปผลการทดลอง (หรือ สรุป อภิปรายผลและข้อเสนอแนะ)' },
             problems: { found: false, isBold: false, label: 'ปัญหาและอุปสรรคในการทดลอง' },
             suggestions: { found: false, isBold: false, label: 'ข้อเสนอแนะและแนวทางในการพัฒนา' }
         };
@@ -235,7 +235,7 @@ function checkDocx(buffer) {
             { id: 'analyze', match: ['การวิเคราะห์ข้อมูล'] },
             { id: 'experiment', match: ['วิธีการทดลอง', 'วิธีทดลอง', 'วิธีการ/ขั้นตอนทดสอบ'] },
             { id: 'result', match: ['ผลการทดลอง', 'ผลการวิเคราะห์'] },
-            { id: 'conclusion', match: ['สรุปผลการทดลอง', 'สรุปผลการวิจัย', 'สรุปผลการดำเนินงาน'] },
+            { id: 'conclusion', match: ['สรุปผลการทดลอง', 'สรุปผลการวิจัย', 'สรุปผลการดำเนินงาน', 'สรุป อภิปรายผลและข้อเสนอแนะ'] },
             { id: 'problems', match: ['ปัญหาและอุปสรรค', 'ปัญหาและอุปสรรคในการทดลอง'] },
             { id: 'suggestions', match: ['ข้อเสนอแนะ', 'ข้อเสนอแนะและแนวทางในการพัฒนา', 'ข้อเสนอแนะและแนวทางมนการพัฒนา'] }
         ];
