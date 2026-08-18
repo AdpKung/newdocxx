@@ -226,20 +226,24 @@ app.get('/api/admin/users', checkAdmin, (req, res) => {
 });
 
 app.get('/api/admin/stats', checkAdmin, (req, res) => {
-    db.get(`SELECT COUNT(*) as totalUsers FROM users`, (err, userRow) => {
+    db.get(`SELECT COUNT(*) as c FROM users`, (err, userRow) => {
         if (err) return res.status(500).json({ error: 'Database error' });
         
-        db.get(`SELECT COUNT(*) as totalDocs FROM history`, (err, historyRow) => {
+        db.get(`SELECT COUNT(*) as c FROM history`, (err, historyRow) => {
             if (err) return res.status(500).json({ error: 'Database error' });
             
-            db.get(`SELECT COUNT(*) as totalPassed FROM history WHERE status = 'success'`, (err, passedRow) => {
+            db.get(`SELECT COUNT(*) as c FROM history WHERE status = 'success'`, (err, passedRow) => {
                 if (err) return res.status(500).json({ error: 'Database error' });
                 
+                const totalUsers = userRow ? (userRow.c ?? userRow.C ?? userRow['COUNT(*)'] ?? 0) : 0;
+                const totalDocs = historyRow ? (historyRow.c ?? historyRow.C ?? historyRow['COUNT(*)'] ?? 0) : 0;
+                const totalPassed = passedRow ? (passedRow.c ?? passedRow.C ?? passedRow['COUNT(*)'] ?? 0) : 0;
+                
                 res.json({
-                    totalUsers: userRow.totalUsers,
-                    totalDocs: historyRow.totalDocs,
-                    totalPassed: passedRow.totalPassed,
-                    totalFailed: historyRow.totalDocs - passedRow.totalPassed
+                    totalUsers: Number(totalUsers),
+                    totalDocs: Number(totalDocs),
+                    totalPassed: Number(totalPassed),
+                    totalFailed: Math.max(0, Number(totalDocs) - Number(totalPassed))
                 });
             });
         });
