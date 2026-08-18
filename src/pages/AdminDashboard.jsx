@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Navigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { Users, Shield, Trash2, ArrowUpCircle, ArrowDownCircle, Loader2, FileText, CheckCircle, XCircle } from 'lucide-react';
+import { Users, Shield, Trash2, ArrowUpCircle, ArrowDownCircle, Loader2, FileText, CheckCircle, XCircle, Eye, X } from 'lucide-react';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
@@ -10,6 +10,11 @@ const AdminDashboard = () => {
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    
+    // Modal states
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [userHistory, setUserHistory] = useState([]);
+    const [historyLoading, setHistoryLoading] = useState(false);
 
     useEffect(() => {
         if (user && user.role === 'admin') {
@@ -74,7 +79,6 @@ const AdminDashboard = () => {
             });
             if (res.ok) {
                 setUsersList(usersList.filter(u => u.id !== targetUserId));
-                // Refresh stats
                 fetchData();
             } else {
                 alert('ไม่สามารถลบผู้ใช้ได้');
@@ -84,14 +88,38 @@ const AdminDashboard = () => {
         }
     };
 
-    // Access Control: Only admins can view this page
+    const handleViewHistory = async (targetUser) => {
+        setSelectedUser(targetUser);
+        setHistoryLoading(true);
+        try {
+            const res = await fetch(`/api/history?userId=${targetUser.id}`);
+            if (res.ok) {
+                const data = await res.json();
+                setUserHistory(data);
+            } else {
+                setUserHistory([]);
+                alert('ไม่สามารถดึงข้อมูลประวัติได้');
+            }
+        } catch (err) {
+            alert('เกิดข้อผิดพลาดในการดึงข้อมูลประวัติ');
+        } finally {
+            setHistoryLoading(false);
+        }
+    };
+
+    const closeHistoryModal = () => {
+        setSelectedUser(null);
+        setUserHistory([]);
+    };
+
     if (!user || user.role !== 'admin') {
         return <Navigate to="/" replace />;
     }
 
     return (
         <div className="admin-dashboard container">
-            <div className="admin-header">
+            <div className="admin-header" style={{ display: 'none' }}>
+                {/* Hide old header title since mockup looks very clean without big header */}
                 <h1 className="admin-title">
                     <div className="icon"><Shield size={28} /></div>
                     ระบบจัดการผู้ใช้ (Admin)
@@ -101,39 +129,39 @@ const AdminDashboard = () => {
             {stats && (
                 <div className="admin-stats-grid">
                     <div className="stat-card">
-                        <div className="stat-icon" style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}>
-                            <Users size={24} />
+                        <div className="stat-icon" style={{ backgroundColor: '#e0e7ff', color: '#4f46e5' }}>
+                            <Users size={20} />
                         </div>
                         <div className="stat-content">
                             <h3>จำนวนผู้ใช้ทั้งหมด</h3>
-                            <p className="stat-number">{stats.totalUsers}</p>
+                            <span className="stat-number">{stats.totalUsers}</span>
                         </div>
                     </div>
                     <div className="stat-card">
-                        <div className="stat-icon" style={{ backgroundColor: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6' }}>
-                            <FileText size={24} />
+                        <div className="stat-icon" style={{ backgroundColor: '#f3e8ff', color: '#9333ea' }}>
+                            <FileText size={20} />
                         </div>
                         <div className="stat-content">
                             <h3>เอกสารที่ถูกตรวจสอบ</h3>
-                            <p className="stat-number">{stats.totalDocs}</p>
+                            <span className="stat-number">{stats.totalDocs}</span>
                         </div>
                     </div>
                     <div className="stat-card">
-                        <div className="stat-icon" style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
-                            <CheckCircle size={24} />
+                        <div className="stat-icon" style={{ backgroundColor: '#dcfce7', color: '#16a34a' }}>
+                            <CheckCircle size={20} />
                         </div>
                         <div className="stat-content">
                             <h3>เอกสารที่ผ่านเกณฑ์</h3>
-                            <p className="stat-number">{stats.totalPassed}</p>
+                            <span className="stat-number">{stats.totalPassed}</span>
                         </div>
                     </div>
                     <div className="stat-card">
-                        <div className="stat-icon" style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}>
-                            <XCircle size={24} />
+                        <div className="stat-icon" style={{ backgroundColor: '#fee2e2', color: '#dc2626' }}>
+                            <XCircle size={20} />
                         </div>
                         <div className="stat-content">
                             <h3>เอกสารที่ไม่ผ่านเกณฑ์</h3>
-                            <p className="stat-number">{stats.totalFailed}</p>
+                            <span className="stat-number">{stats.totalFailed}</span>
                         </div>
                     </div>
                 </div>
@@ -155,7 +183,7 @@ const AdminDashboard = () => {
                                     <th>ชื่อผู้ใช้</th>
                                     <th>อีเมล</th>
                                     <th>วันที่สมัคร</th>
-                                    <th>สถานะ</th>
+                                    <th style={{ textAlign: 'center' }}>สถานะ</th>
                                     <th style={{ textAlign: 'right' }}>จัดการ</th>
                                 </tr>
                             </thead>
@@ -163,41 +191,48 @@ const AdminDashboard = () => {
                                 {usersList.map((u) => (
                                     <tr key={u.id}>
                                         <td>#{u.id}</td>
-                                        <td style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{u.name}</td>
-                                        <td>{u.email}</td>
-                                        <td>{new Date(u.created_at).toLocaleDateString('th-TH')}</td>
-                                        <td>
+                                        <td style={{ fontWeight: 600, color: '#111827' }}>{u.name}</td>
+                                        <td style={{ color: '#4b5563' }}>{u.email}</td>
+                                        <td style={{ color: '#4b5563' }}>{new Date(u.created_at).toLocaleDateString('th-TH')}</td>
+                                        <td style={{ textAlign: 'center' }}>
                                             <span className={`role-badge ${u.role}`}>
                                                 {u.role === 'admin' ? <Shield size={14} /> : <Users size={14} />}
                                                 {u.role === 'admin' ? 'แอดมิน' : 'ผู้ใช้ทั่วไป'}
                                             </span>
                                         </td>
                                         <td style={{ textAlign: 'right' }}>
+                                            <button 
+                                                className="action-btn inspect-btn" 
+                                                title="ดูประวัติการตรวจสอบ"
+                                                onClick={() => handleViewHistory(u)}
+                                            >
+                                                <Eye size={18} />
+                                            </button>
                                             {u.role === 'user' ? (
                                                 <button 
-                                                    className="action-btn" 
+                                                    className="action-btn promote-btn" 
                                                     title="เลื่อนขั้นเป็นแอดมิน"
                                                     onClick={() => handleRoleChange(u.id, 'admin')}
                                                 >
-                                                    <ArrowUpCircle size={20} />
+                                                    <ArrowUpCircle size={18} />
                                                 </button>
                                             ) : (
                                                 <button 
-                                                    className="action-btn" 
+                                                    className="action-btn demote-btn" 
                                                     title="ลดขั้นเป็นผู้ใช้ทั่วไป"
                                                     onClick={() => handleRoleChange(u.id, 'user')}
-                                                    disabled={u.id === user.id} // Cannot demote self
+                                                    disabled={u.id === user.id}
                                                 >
-                                                    <ArrowDownCircle size={20} />
+                                                    <ArrowDownCircle size={18} />
                                                 </button>
                                             )}
                                             <button 
-                                                className="action-btn delete" 
+                                                className="action-btn delete-btn" 
                                                 title="ลบบัญชีผู้ใช้"
                                                 onClick={() => handleDelete(u.id)}
-                                                disabled={u.id === user.id} // Cannot delete self
+                                                disabled={u.id === user.id}
                                             >
-                                                <Trash2 size={20} />
+                                                <Trash2 size={18} />
                                             </button>
                                         </td>
                                     </tr>
@@ -214,6 +249,52 @@ const AdminDashboard = () => {
                     </div>
                 )}
             </div>
+
+            {/* User History Modal */}
+            {selectedUser && (
+                <div className="admin-modal-overlay" onClick={closeHistoryModal}>
+                    <div className="admin-modal-content" onClick={e => e.stopPropagation()}>
+                        <button className="admin-modal-close" onClick={closeHistoryModal}>
+                            <X size={24} />
+                        </button>
+                        <h2 className="admin-modal-title">
+                            ประวัติของ {selectedUser.name}
+                        </h2>
+                        <p className="admin-modal-subtitle">รหัส: #{selectedUser.id} | {selectedUser.email}</p>
+                        
+                        <div className="admin-modal-body">
+                            {historyLoading ? (
+                                <div className="loading-container">
+                                    <Loader2 size={30} className="spin-anim" />
+                                </div>
+                            ) : userHistory.length > 0 ? (
+                                <div className="history-list">
+                                    {userHistory.map(item => (
+                                        <div key={item.id} className={`history-item ${item.status}`}>
+                                            <div className="history-item-header">
+                                                <div className="history-item-title">
+                                                    <FileText size={16} />
+                                                    <span>{item.file_name}</span>
+                                                </div>
+                                                <div className={`history-status-badge ${item.status}`}>
+                                                    {item.score_percent}% - {item.status === 'success' ? 'ผ่าน' : item.status === 'warning' ? 'แก้ไขบางส่วน' : 'ไม่ผ่าน'}
+                                                </div>
+                                            </div>
+                                            <div className="history-item-date">
+                                                ตรวจสอบเมื่อ: {new Date(item.created_at).toLocaleString('th-TH')}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="empty-history">
+                                    ผู้ใช้นี้ยังไม่มีประวัติการตรวจสอบเอกสาร
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
