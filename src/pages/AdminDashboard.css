@@ -66,22 +66,25 @@
 
 .stat-content {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
   width: 100%;
+  gap: 0.2rem;
 }
 
 .stat-content h3 {
   font-size: 0.9rem;
-  color: #475569;
+  color: #64748b;
   font-weight: 600;
   margin: 0;
 }
 
 .stat-content .stat-number {
-  font-size: 1.25rem;
-  font-weight: 700;
+  font-size: 1.5rem;
+  font-weight: 800;
   color: #0f172a;
+  line-height: 1.2;
 }
 
 /* Glassmorphism Card */

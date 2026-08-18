@@ -134,7 +134,7 @@ const AdminDashboard = () => {
                         </div>
                         <div className="stat-content">
                             <h3>จำนวนผู้ใช้ทั้งหมด</h3>
-                            <span className="stat-number">{stats.totalUsers}</span>
+                            <span className="stat-number">{stats.totalUsers ?? 0}</span>
                         </div>
                     </div>
                     <div className="stat-card">
@@ -143,7 +143,7 @@ const AdminDashboard = () => {
                         </div>
                         <div className="stat-content">
                             <h3>เอกสารที่ถูกตรวจสอบ</h3>
-                            <span className="stat-number">{stats.totalDocs}</span>
+                            <span className="stat-number">{stats.totalDocs ?? 0}</span>
                         </div>
                     </div>
                     <div className="stat-card">
@@ -152,7 +152,7 @@ const AdminDashboard = () => {
                         </div>
                         <div className="stat-content">
                             <h3>เอกสารที่ผ่านเกณฑ์</h3>
-                            <span className="stat-number">{stats.totalPassed}</span>
+                            <span className="stat-number">{stats.totalPassed ?? 0}</span>
                         </div>
                     </div>
                     <div className="stat-card">
@@ -161,7 +161,7 @@ const AdminDashboard = () => {
                         </div>
                         <div className="stat-content">
                             <h3>เอกสารที่ไม่ผ่านเกณฑ์</h3>
-                            <span className="stat-number">{stats.totalFailed}</span>
+                            <span className="stat-number">{stats.totalFailed ?? 0}</span>
                         </div>
                     </div>
                 </div>
