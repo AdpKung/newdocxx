@@ -199,6 +199,16 @@ function checkDocx(buffer) {
                 b = true;
             }
 
+            let pPrXml = pPr ? pPr.toString().replace(/</g, '[').replace(/>/g, ']') : 'no-pPr';
+            let firstRPrXml = 'no-rPr';
+            for (let r=0; r<runs.length; r++) {
+                let rPr = runs[r].getElementsByTagName('w:rPr')[0];
+                if (rPr) {
+                    firstRPrXml = rPr.toString().replace(/</g, '[').replace(/>/g, ']');
+                    break;
+                }
+            }
+
             return { 
                 sizes: Array.from(sizesInP), 
                 isBold: b, 
@@ -206,7 +216,8 @@ function checkDocx(buffer) {
                 totalLen: totalTextLength,
                 boldLen: boldTextLength,
                 styleId: pStyleId,
-                defaultPBold: defaultPBold
+                defaultPBold: defaultPBold,
+                xmlDebug: `pPr:${pPrXml} | rPr:${firstRPrXml}`
             };
          }
 
@@ -410,7 +421,7 @@ function checkDocx(buffer) {
                         errs.push(`พบขนาด ${fmt.sizes.join(', ')}pt (กรุณาแก้ไขเป็น 16pt ทั้งหมด)`);
                     }
                     if (fmt.isBold && cleanPText.length > 20) {
-                        errs.push(`เป็นตัวหนาทั้งย่อหน้า (debug: boldLen=${fmt.boldLen}/${fmt.totalLen}, style=${fmt.styleId}, defaultB=${fmt.defaultPBold})`);
+                        errs.push(`เป็นตัวหนาทั้งย่อหน้า (debug: ${fmt.xmlDebug})`);
                     }
                     if (errs.length > 0) {
                         if (formatDetails.length < 15) formatDetails.push(`เนื้อหาทั่วไปขึ้นต้นด้วย "${pText.trim().substring(0,25)}...": ${errs.join(', ')}`);
