@@ -54,10 +54,10 @@ function checkDocx(buffer) {
                         let sz = null;
                         
                         let bNode = rPr.getElementsByTagName('w:b')[0];
-                        if (bNode && checkOnOff(bNode.getAttribute('w:val'))) isBold = true;
+                        if (bNode) isBold = checkOnOff(bNode.getAttribute('w:val'));
                         
                         let bCsNode = rPr.getElementsByTagName('w:bCs')[0];
-                        if (bCsNode && checkOnOff(bCsNode.getAttribute('w:val'))) isBold = true;
+                        if (bCsNode) isBold = checkOnOff(bCsNode.getAttribute('w:val'));
                         
                         let szNode = rPr.getElementsByTagName('w:sz')[0];
                         let szCsNode = rPr.getElementsByTagName('w:szCs')[0];
@@ -154,27 +154,34 @@ function checkDocx(buffer) {
                     sizesInP.add(currentSz);
          
                     let runIsBold = defaultPBold;
-                    
-                    let bNode = rPr ? rPr.getElementsByTagName('w:b')[0] : null;
-                    let bCsNode = rPr ? rPr.getElementsByTagName('w:bCs')[0] : null;
 
-                    const checkOnOff = (val) => {
+                    const checkOnOffLocal = (val) => {
                         if (val === null || val === undefined) return true;
                         val = val.toLowerCase();
                         if (val === '0' || val === 'false' || val === 'off') return false;
                         return true;
                     };
+                    
+                    if (pPr_rPr) {
+                        let p_bNode = pPr_rPr.getElementsByTagName('w:b')[0];
+                        let p_bCsNode = pPr_rPr.getElementsByTagName('w:bCs')[0];
+                        if (p_bNode) runIsBold = checkOnOffLocal(p_bNode.getAttribute('w:val'));
+                        if (p_bCsNode) runIsBold = checkOnOffLocal(p_bCsNode.getAttribute('w:val'));
+                    }
+                    
+                    let bNode = rPr ? rPr.getElementsByTagName('w:b')[0] : null;
+                    let bCsNode = rPr ? rPr.getElementsByTagName('w:bCs')[0] : null;
 
                     let hasExplicitBold = false;
                     let isExplicitlyBold = false;
 
                     if (bNode) {
                         hasExplicitBold = true;
-                        if (checkOnOff(bNode.getAttribute('w:val'))) isExplicitlyBold = true;
+                        isExplicitlyBold = checkOnOffLocal(bNode.getAttribute('w:val'));
                     }
                     if (bCsNode) {
                         hasExplicitBold = true;
-                        if (checkOnOff(bCsNode.getAttribute('w:val'))) isExplicitlyBold = true;
+                        isExplicitlyBold = checkOnOffLocal(bCsNode.getAttribute('w:val'));
                     }
 
                     if (hasExplicitBold) {
