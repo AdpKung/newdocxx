@@ -299,7 +299,7 @@ const AdminDashboard = () => {
                                                 className="btn btn-outline"
                                                 style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 1rem' }}
                                             >
-                                                <Download size={16} /> โหลด PDF
+                                                <Download size={16} /> โหลดเอกสาร
                                             </a>
                                         </td>
                                     </tr>

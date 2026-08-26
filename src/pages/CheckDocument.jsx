@@ -102,17 +102,17 @@ const CheckDocument = () => {
     setSubmitStatus('idle');
   };
 
-  const handlePdfSubmit = async () => {
-    if (!pdfFile || !resultData || !resultData.historyId || !user) return;
+  const handleDocxSubmit = async () => {
+    if (!file || !resultData || !resultData.historyId || !user) return;
     
     setSubmitStatus('uploading');
     const formData = new FormData();
-    formData.append('pdf', pdfFile);
+    formData.append('file', file);
     formData.append('historyId', resultData.historyId);
     formData.append('userId', user.id);
 
     try {
-      const response = await fetch('/api/submit-pdf', {
+      const response = await fetch('/api/submit-docx', {
         method: 'POST',
         body: formData,
       });
@@ -337,12 +337,9 @@ const CheckDocument = () => {
                   <button className="btn btn-outline" onClick={resetProcess}>
                     <RefreshCw size={18} /> อัปโหลดไฟล์ใหม่
                   </button>
-                  <button className="btn btn-primary" disabled={isEmpty || isError}>
-                    <Download size={18} /> โหลดรายงาน (PDF)
-                  </button>
                   {scorePercent === 100 && (
                     <button className="btn btn-success" onClick={() => setShowSubmitModal(true)} style={{ backgroundColor: '#10b981', color: 'white', border: 'none' }}>
-                      <UploadCloud size={18} /> ส่งเอกสารฉบับสมบูรณ์ (PDF)
+                      <UploadCloud size={18} /> ส่งเอกสารให้แอดมิน
                     </button>
                   )}
                 </div>
@@ -731,7 +728,7 @@ const CheckDocument = () => {
           )}
         </AnimatePresence>
 
-        {/* Submit PDF Modal */}
+        {/* Submit Document Modal */}
         <AnimatePresence>
           {showSubmitModal && (
             <div className="modal-overlay" onClick={() => setShowSubmitModal(false)} style={{
@@ -745,20 +742,10 @@ const CheckDocument = () => {
                 exit={{ opacity: 0, scale: 0.9 }}
                 style={{ padding: '2rem', maxWidth: '500px', width: '90%', borderRadius: '20px', position: 'relative' }}
               >
-                <h3 style={{ marginBottom: '1rem', color: '#1e293b' }}>ส่งเอกสารฉบับสมบูรณ์ (PDF)</h3>
+                <h3 style={{ marginBottom: '1rem', color: '#1e293b' }}>ส่งเอกสารให้แอดมิน</h3>
                 <p style={{ color: '#64748b', marginBottom: '1.5rem', lineHeight: '1.6' }}>
-                  เอกสารของคุณผ่านการตรวจสอบ 100% แล้ว! กรุณาอัปโหลดไฟล์ในรูปแบบ <strong>.pdf</strong> เพื่อส่งให้อาจารย์/แอดมินพิจารณา
+                  เอกสารของคุณผ่านการตรวจสอบ 100% แล้ว! คุณต้องการส่งไฟล์ <strong>{file?.name}</strong> ให้อาจารย์/แอดมินพิจารณาเลยหรือไม่?
                 </p>
-                
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <label className="btn btn-outline" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', width: '100%', padding: '1rem', cursor: 'pointer', border: '2px dashed #cbd5e1', borderRadius: '12px' }}>
-                    <FileType size={20} />
-                    {pdfFile ? pdfFile.name : 'เลือกไฟล์ PDF'}
-                    <input type="file" accept=".pdf" onChange={(e) => {
-                      if(e.target.files && e.target.files.length > 0) setPdfFile(e.target.files[0]);
-                    }} hidden />
-                  </label>
-                </div>
 
                 {submitStatus === 'success' && (
                   <div className="check-item success" style={{ marginBottom: '1rem', justifyContent: 'center' }}>
@@ -770,8 +757,8 @@ const CheckDocument = () => {
                   <button className="btn btn-text" onClick={() => setShowSubmitModal(false)}>ยกเลิก</button>
                   <button 
                     className="btn btn-primary" 
-                    onClick={handlePdfSubmit} 
-                    disabled={!pdfFile || submitStatus === 'uploading' || submitStatus === 'success'}
+                    onClick={handleDocxSubmit} 
+                    disabled={submitStatus === 'uploading' || submitStatus === 'success'}
                     style={{ backgroundColor: '#10b981', border: 'none' }}
                   >
                     {submitStatus === 'uploading' ? <><Loader2 size={18} className="spin" /> กำลังส่ง...</> : 'ยืนยันการส่ง'}

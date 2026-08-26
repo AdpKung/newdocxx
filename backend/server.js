@@ -275,9 +275,9 @@ app.delete('/api/admin/users/:id', checkAdmin, (req, res) => {
 });
 
 
-// --- PDF SUBMISSION ENDPOINTS ---
-app.post('/api/submit-pdf', upload.single('pdf'), (req, res) => {
-    if (!req.file) return res.status(400).json({ error: 'No PDF file uploaded' });
+// --- DOCX SUBMISSION ENDPOINTS ---
+app.post('/api/submit-docx', upload.single('file'), (req, res) => {
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
     
     const { userId, historyId } = req.body;
     if (!userId || !historyId) return res.status(400).json({ error: 'Missing required fields' });
@@ -285,14 +285,14 @@ app.post('/api/submit-pdf', upload.single('pdf'), (req, res) => {
     let originalName = req.file.originalname;
     try { originalName = Buffer.from(originalName, 'latin1').toString('utf8'); } catch (e) {}
 
-    if (!originalName.toLowerCase().endsWith('.pdf')) {
-        return res.status(400).json({ error: 'ต้องเป็นไฟล์ .pdf เท่านั้น' });
+    if (!originalName.toLowerCase().endsWith('.docx')) {
+        return res.status(400).json({ error: 'ต้องเป็นไฟล์ .docx เท่านั้น' });
     }
 
     // Verify 100% score
     db.get(`SELECT score_percent FROM history WHERE id = ? AND user_id = ?`, [historyId, userId], (err, row) => {
         if (err || !row) return res.status(404).json({ error: 'History not found' });
-        if (row.score_percent < 100) return res.status(403).json({ error: 'ต้องได้คะแนน 100% ถึงจะส่งไฟล์ PDF ได้' });
+        if (row.score_percent < 100) return res.status(403).json({ error: 'ต้องได้คะแนน 100% ถึงจะส่งเอกสารได้' });
 
         // Save file
         const timestamp = Date.now();
