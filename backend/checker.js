@@ -99,7 +99,6 @@ function checkDocx(buffer) {
             }
         }
 
-        // Helper function to extract paragraph formatting
         function getFormat(node, defaultDocSize) {
             let b = false;
             let center = false;
@@ -118,7 +117,8 @@ function checkDocx(buffer) {
 
             let defaultPBold = pStyleId && styleBoldMap[pStyleId] ? true : false;
             let defaultPSize = pStyleId && styleSizeMap[pStyleId] ? styleSizeMap[pStyleId] : defaultDocSize;
-            let sz = defaultPSize;
+            
+            let sizesInP = new Set();
          
             const runs = node.getElementsByTagName('w:r');
             let totalTextLength = 0;
@@ -139,21 +139,19 @@ function checkDocx(buffer) {
                     const pPr = node.getElementsByTagName('w:pPr')[0];
                     if (pPr) pPr_rPr = pPr.getElementsByTagName('w:rPr')[0];
                     
-                    let runSz = defaultPSize;
-                    
                     let szNode = rPr ? rPr.getElementsByTagName('w:sz')[0] : null;
                     let szCsNode = rPr ? rPr.getElementsByTagName('w:szCs')[0] : null;
          
                     let valCs = szCsNode ? parseInt(szCsNode.getAttribute('w:val')||'0', 10)/2 : 0;
                     let valAscii = szNode ? parseInt(szNode.getAttribute('w:val')||'0', 10)/2 : 0;
                     
+                    let currentSz = defaultPSize;
                     if (valCs > 0) {
-                        sz = valCs; // Prioritize Thai font size (Complex Scripts)
+                        currentSz = valCs;
                     } else if (valAscii > 0) {
-                        sz = valAscii;
-                    } else {
-                        sz = defaultPSize;
+                        currentSz = valAscii;
                     }
+                    sizesInP.add(currentSz);
          
                     let runIsBold = defaultPBold;
                     
@@ -188,12 +186,13 @@ function checkDocx(buffer) {
                 }
             }
             
-            // If more than 50% of the text is bold, we consider the paragraph as a whole to be bold
+            if (sizesInP.size === 0) sizesInP.add(defaultPSize);
+
             if (totalTextLength > 0 && (boldTextLength / totalTextLength) > 0.5) {
                 b = true;
             }
 
-            return { size: sz, isBold: b, isCenter: center };
+            return { sizes: Array.from(sizesInP), isBold: b, isCenter: center };
          }
 
         // 1. Text Extraction & Structural check (Paragraph level)
@@ -370,7 +369,9 @@ function checkDocx(buffer) {
 
             let errs = [];
             if (isChapter) {
-                if (fmt.size !== 18) errs.push(`ขนาด ${fmt.size}pt (กรุณาแก้ไขเป็น 18pt)`);
+                if (!fmt.sizes.includes(18) || fmt.sizes.some(s => s !== 18)) {
+                    errs.push(`พบขนาด ${fmt.sizes.join(', ')}pt (กรุณาแก้ไขเป็น 18pt ทั้งหมด)`);
+                }
                 if (!fmt.isBold) errs.push(`ไม่ใช่ตัวหนา (กรุณาทำเป็นตัวหนา)`);
                 if (!fmt.isCenter) errs.push(`ไม่ได้จัดกึ่งกลาง (กรุณาจัดหน้าแบบกึ่งกลาง)`);
                 if (errs.length > 0) {
@@ -378,7 +379,9 @@ function checkDocx(buffer) {
                     fontSizePass = false;
                 }
             } else if (isSubtopic) {
-                if (fmt.size !== 16) errs.push(`ขนาด ${fmt.size}pt (กรุณาแก้ไขเป็น 16pt)`);
+                if (!fmt.sizes.includes(16) || fmt.sizes.some(s => s !== 16)) {
+                    errs.push(`พบขนาด ${fmt.sizes.join(', ')}pt (กรุณาแก้ไขเป็น 16pt ทั้งหมด)`);
+                }
                 // We do not push 'ไม่ใช่ตัวหนา' here because the subtopic logic handles it globally,
                 // preventing false positives when the subtopic is referenced in a TOC list.
                 if (errs.length > 0) {
@@ -388,7 +391,9 @@ function checkDocx(buffer) {
             } else {
                 // General content
                 if (cleanPText.length > 10) { // skip very short lines like page numbers
-                    if (fmt.size !== 16) errs.push(`ขนาด ${fmt.size}pt (กรุณาแก้ไขเป็น 16pt)`);
+                    if (!fmt.sizes.includes(16) || fmt.sizes.some(s => s !== 16)) {
+                        errs.push(`พบขนาด ${fmt.sizes.join(', ')}pt (กรุณาแก้ไขเป็น 16pt ทั้งหมด)`);
+                    }
                     if (fmt.isBold && cleanPText.length > 20) errs.push(`เป็นตัวหนาทั้งย่อหน้า (กรุณาแก้ไขเป็นตัวอักษรธรรมดา ตัวไม่หนา)`);
                     if (errs.length > 0) {
                         if (formatDetails.length < 15) formatDetails.push(`เนื้อหาทั่วไปขึ้นต้นด้วย "${pText.trim().substring(0,25)}...": ${errs.join(', ')}`);
