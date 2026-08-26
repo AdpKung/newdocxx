@@ -51,7 +51,7 @@ const Home = () => {
               </Link>
               <Link to="/guidelines" className="btn btn-outline btn-lg">
                 <BookOpen size={18} />
-                ดูคู่มือการตรวจสอบ
+                เกณฑ์การตรวจสอบโครงสร้าง
               </Link>
             </motion.div>
           </motion.div>
