@@ -269,6 +269,17 @@ function checkDocx(buffer) {
             const cleanPText = pText.replace(/\s+/g, '');
             fullText += pText + ' ';
 
+            let inTable = false;
+            let parent = pNode.parentNode;
+            while (parent) {
+                if (parent.nodeName === 'w:tbl' || parent.nodeName === 'w:tc') {
+                    inTable = true;
+                    break;
+                }
+                parent = parent.parentNode;
+            }
+            if (inTable) continue;
+
             let fmt = getFormat(pNode, defaultDocSize);
 
             // Role identification
