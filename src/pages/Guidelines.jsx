@@ -5,8 +5,8 @@ const Guidelines = () => {
   return (
     <div className="container" style={{ padding: '3rem 0' }}>
       <div className="page-header" style={{ textAlign: 'center', marginBottom: '4rem' }}>
-        <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>คู่มือและ<span className="text-gradient">เทมเพลต</span></h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}>ดาวน์โหลดไฟล์ต้นแบบและศึกษาระเบียบการจัดทำเอกสารโครงการ</p>
+        <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>คู่มือ<span className="text-gradient">การตรวจสอบ</span></h1>
+        <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}>ศึกษาระเบียบการจัดทำเอกสารและเกณฑ์การตรวจสอบโครงงาน</p>
       </div>
 
 
