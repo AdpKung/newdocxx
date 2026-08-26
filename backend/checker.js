@@ -160,13 +160,6 @@ function checkDocx(buffer) {
                     let runIsBoldAscii = defaultPBoldAscii;
                     let runIsBoldCs = defaultPBoldCs;
                     
-                    if (pPr_rPr) {
-                        let p_bNode = pPr_rPr.getElementsByTagName('w:b')[0];
-                        let p_bCsNode = pPr_rPr.getElementsByTagName('w:bCs')[0];
-                        if (p_bNode) runIsBoldAscii = checkOnOffLocal(p_bNode.getAttribute('w:val'));
-                        if (p_bCsNode) runIsBoldCs = checkOnOffLocal(p_bCsNode.getAttribute('w:val'));
-                    }
-                    
                     let bNode = rPr ? rPr.getElementsByTagName('w:b')[0] : null;
                     let bCsNode = rPr ? rPr.getElementsByTagName('w:bCs')[0] : null;
 
