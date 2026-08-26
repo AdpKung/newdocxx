@@ -382,6 +382,7 @@ const CheckDocument = () => {
                                   <CheckCircle2 size={16} className="flex-shrink-0" />
                                   <div>
                                     <span style={{ fontSize: '0.95rem', color: '#2e7d32', fontWeight: 'bold' }}>พบหัวข้อย่อยครบถ้วนและถูกต้องทั้งหมด</span>
+                                    <p className="item-detail" style={{ fontSize: '0.85rem', color: '#2e7d32', marginTop: '4px' }}>(ที่มาและความสำคัญ, วัตถุประสงค์, ขอบเขต, ประโยชน์ที่คาดว่าจะได้รับ, นิยามศัพท์เฉพาะ)</p>
                                   </div>
                                 </div>
                               ) : (
@@ -465,6 +466,7 @@ const CheckDocument = () => {
                                   <CheckCircle2 size={16} className="flex-shrink-0" />
                                   <div>
                                     <span style={{ fontSize: '0.95rem', color: '#2e7d32', fontWeight: 'bold' }}>พบหัวข้อย่อยครบถ้วนและถูกต้องทั้งหมด</span>
+                                    <p className="item-detail" style={{ fontSize: '0.85rem', color: '#2e7d32', marginTop: '4px' }}>(ประชากรและกลุ่มตัวอย่าง, เครื่องมือที่ใช้ในการวิจัย, การเก็บรวบรวมข้อมูล, การวิเคราะห์ข้อมูล)</p>
                                   </div>
                                 </div>
                               ) : (
@@ -564,6 +566,7 @@ const CheckDocument = () => {
                                   <CheckCircle2 size={16} className="flex-shrink-0" />
                                   <div>
                                     <span style={{ fontSize: '0.95rem', color: '#2e7d32', fontWeight: 'bold' }}>พบหัวข้อย่อยครบถ้วนและถูกต้องทั้งหมด</span>
+                                    <p className="item-detail" style={{ fontSize: '0.85rem', color: '#2e7d32', marginTop: '4px' }}>(วิธีการทดลอง, ผลการทดลอง)</p>
                                   </div>
                                 </div>
                               ) : (
@@ -622,6 +625,7 @@ const CheckDocument = () => {
                                   <CheckCircle2 size={16} className="flex-shrink-0" />
                                   <div>
                                     <span style={{ fontSize: '0.95rem', color: '#2e7d32', fontWeight: 'bold' }}>พบหัวข้อย่อยครบถ้วนและถูกต้องทั้งหมด</span>
+                                    <p className="item-detail" style={{ fontSize: '0.85rem', color: '#2e7d32', marginTop: '4px' }}>(สรุปผลการทดลอง, ปัญหาและอุปสรรค, ข้อเสนอแนะ)</p>
                                   </div>
                                 </div>
                               ) : (
@@ -665,7 +669,7 @@ const CheckDocument = () => {
                         <div className={`check-item ${resultData?.details?.font_pass ? 'success' : 'error'}`}>
                           {resultData?.details?.font_pass ? <CheckCircle2 size={20} className="flex-shrink-0" /> : <AlertCircle size={20} className="flex-shrink-0" />}
                           <div>
-                            <span>{resultData?.details?.font_pass ? 'ตรวจพบการใช้ฟอนต์ตระกูล TH Sarabun ถูกต้อง' : 'ตรวจพบชนิดฟอนต์ที่ไม่ถูกต้อง'}</span>
+                            <span>{resultData?.details?.font_pass ? 'ตรวจพบการใช้ฟอนต์ตระกูล TH Sarabun ถูกต้อง (TH Sarabun PSK หรือ TH Sarabun New)' : 'ตรวจพบชนิดฟอนต์ที่ไม่ถูกต้อง'}</span>
                             {!resultData?.details?.font_pass && resultData?.details?.font_details?.map((detail, idx) => (
                               <p key={idx} className="item-detail">{detail}</p>
                             ))}
@@ -689,7 +693,7 @@ const CheckDocument = () => {
                         <div className={`check-item ${resultData?.details?.fontsize_pass ? 'success' : 'warning'}`}>
                           {resultData?.details?.fontsize_pass ? <CheckCircle2 size={20} className="flex-shrink-0" /> : <AlertCircle size={20} className="flex-shrink-0" />}
                           <div>
-                            <span>{resultData?.details?.fontsize_pass ? 'การจัดรูปแบบขนาดตัวอักษรและตัวหนาถูกต้องตามมาตรฐาน' : 'พบการจัดรูปแบบตัวอักษรไม่ถูกต้องในบางจุด'}</span>
+                            <span>{resultData?.details?.fontsize_pass ? 'การจัดรูปแบบขนาดตัวอักษรและตัวหนาถูกต้องตามมาตรฐาน (เนื้อหา 16pt, หัวข้อ 16pt ตัวหนา, ชื่อบท 18pt ตัวหนา)' : 'พบการจัดรูปแบบตัวอักษรไม่ถูกต้องในบางจุด'}</span>
                             {!resultData?.details?.fontsize_pass && resultData?.details?.fontsize_details?.map((detail, idx) => (
                               <p key={idx} className="item-detail">{detail}</p>
                             ))}
@@ -713,7 +717,7 @@ const CheckDocument = () => {
                         <div className={`check-item ${resultData?.details?.margin_pass ? 'success' : 'error'}`}>
                           {resultData?.details?.margin_pass ? <CheckCircle2 size={20} className="flex-shrink-0" /> : <AlertCircle size={20} className="flex-shrink-0" />}
                           <div>
-                            <span>{resultData?.details?.margin_pass ? 'ตั้งค่าระยะขอบกระดาษถูกต้องตามมาตรฐาน' : 'พบการตั้งค่าระยะขอบกระดาษไม่ถูกต้อง'}</span>
+                            <span>{resultData?.details?.margin_pass ? 'ตั้งค่าระยะขอบกระดาษถูกต้องตามมาตรฐาน (บน 1.5 นิ้ว, ซ้าย 1.5 นิ้ว, ล่าง 1 นิ้ว, ขวา 1 นิ้ว)' : 'พบการตั้งค่าระยะขอบกระดาษไม่ถูกต้อง'}</span>
                             {!resultData?.details?.margin_pass && resultData?.details?.margin_details?.map((detail, idx) => (
                               <p key={idx} className="item-detail">{detail}</p>
                             ))}
