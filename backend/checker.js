@@ -50,14 +50,15 @@ function checkDocx(buffer) {
                 if (styleId) {
                     const rPr = style.getElementsByTagName('w:rPr')[0];
                     if (rPr) {
-                        let isBold = false;
+                        let isBoldAscii = false;
+                        let isBoldCs = false;
                         let sz = null;
                         
                         let bNode = rPr.getElementsByTagName('w:b')[0];
-                        if (bNode) isBold = checkOnOff(bNode.getAttribute('w:val'));
+                        if (bNode) isBoldAscii = checkOnOff(bNode.getAttribute('w:val'));
                         
                         let bCsNode = rPr.getElementsByTagName('w:bCs')[0];
-                        if (bCsNode) isBold = checkOnOff(bCsNode.getAttribute('w:val'));
+                        if (bCsNode) isBoldCs = checkOnOff(bCsNode.getAttribute('w:val'));
                         
                         let szNode = rPr.getElementsByTagName('w:sz')[0];
                         let szCsNode = rPr.getElementsByTagName('w:szCs')[0];
@@ -65,7 +66,7 @@ function checkDocx(buffer) {
                         if (szCsNode) sz = parseInt(szCsNode.getAttribute('w:val')||'0', 10)/2;
                         else if (szNode) sz = parseInt(szNode.getAttribute('w:val')||'0', 10)/2;
 
-                        styleBoldMap[styleId] = isBold;
+                        styleBoldMap[styleId] = { ascii: isBoldAscii, cs: isBoldCs };
                         if (sz) styleSizeMap[styleId] = sz;
                     }
                 }
@@ -115,7 +116,10 @@ function checkDocx(buffer) {
                 if (pStyleNode) pStyleId = pStyleNode.getAttribute('w:val');
             }
 
-            let defaultPBold = pStyleId && styleBoldMap[pStyleId] ? true : false;
+            let defaultPBoldObj = pStyleId && styleBoldMap[pStyleId] ? styleBoldMap[pStyleId] : { ascii: false, cs: false };
+            let defaultPBoldAscii = defaultPBoldObj.ascii;
+            let defaultPBoldCs = defaultPBoldObj.cs;
+            let defaultPBold = defaultPBoldAscii || defaultPBoldCs;
             let defaultPSize = pStyleId && styleSizeMap[pStyleId] ? styleSizeMap[pStyleId] : defaultDocSize;
             
             let sizesInP = new Set();
@@ -125,36 +129,27 @@ function checkDocx(buffer) {
             let boldTextLength = 0;
 
             for(let r=0; r<runs.length; r++) {
+                let rPr = runs[r].getElementsByTagName('w:rPr')[0];
+                let pPr_rPr = null;
+                const pPr = node.getElementsByTagName('w:pPr')[0];
+                if (pPr) pPr_rPr = pPr.getElementsByTagName('w:rPr')[0];
+                let tNodes = runs[r].getElementsByTagName('w:t');
                 let runText = '';
-                const tNodes = runs[r].getElementsByTagName('w:t');
                 for(let t=0; t<tNodes.length; t++) {
-                    if (tNodes[t] && tNodes[t].textContent.trim().length > 0) {
+                    if (tNodes[t] && tNodes[t].textContent) {
                         runText += tNodes[t].textContent;
                     }
                 }
                 
                 if (runText.trim().length > 0) {
-                    let rPr = runs[r].getElementsByTagName('w:rPr')[0];
-                    let pPr_rPr = null;
-                    const pPr = node.getElementsByTagName('w:pPr')[0];
-                    if (pPr) pPr_rPr = pPr.getElementsByTagName('w:rPr')[0];
-                    
                     let szNode = rPr ? rPr.getElementsByTagName('w:sz')[0] : null;
                     let szCsNode = rPr ? rPr.getElementsByTagName('w:szCs')[0] : null;
-         
-                    let valCs = szCsNode ? parseInt(szCsNode.getAttribute('w:val')||'0', 10)/2 : 0;
-                    let valAscii = szNode ? parseInt(szNode.getAttribute('w:val')||'0', 10)/2 : 0;
-                    
                     let currentSz = defaultPSize;
-                    if (valCs > 0) {
-                        currentSz = valCs;
-                    } else if (valAscii > 0) {
-                        currentSz = valAscii;
-                    }
+
+                    if (szCsNode) currentSz = parseInt(szCsNode.getAttribute('w:val')||'0', 10)/2;
+                    else if (szNode) currentSz = parseInt(szNode.getAttribute('w:val')||'0', 10)/2;
                     sizesInP.add(currentSz);
          
-                    let runIsBold = defaultPBold;
-
                     const checkOnOffLocal = (val) => {
                         if (val === null || val === undefined) return true;
                         val = val.toLowerCase();
@@ -162,31 +157,24 @@ function checkDocx(buffer) {
                         return true;
                     };
                     
+                    let runIsBoldAscii = defaultPBoldAscii;
+                    let runIsBoldCs = defaultPBoldCs;
+                    
                     if (pPr_rPr) {
                         let p_bNode = pPr_rPr.getElementsByTagName('w:b')[0];
                         let p_bCsNode = pPr_rPr.getElementsByTagName('w:bCs')[0];
-                        if (p_bNode) runIsBold = checkOnOffLocal(p_bNode.getAttribute('w:val'));
-                        if (p_bCsNode) runIsBold = checkOnOffLocal(p_bCsNode.getAttribute('w:val'));
+                        if (p_bNode) runIsBoldAscii = checkOnOffLocal(p_bNode.getAttribute('w:val'));
+                        if (p_bCsNode) runIsBoldCs = checkOnOffLocal(p_bCsNode.getAttribute('w:val'));
                     }
                     
                     let bNode = rPr ? rPr.getElementsByTagName('w:b')[0] : null;
                     let bCsNode = rPr ? rPr.getElementsByTagName('w:bCs')[0] : null;
 
-                    let hasExplicitBold = false;
-                    let isExplicitlyBold = false;
+                    if (bNode) runIsBoldAscii = checkOnOffLocal(bNode.getAttribute('w:val'));
+                    if (bCsNode) runIsBoldCs = checkOnOffLocal(bCsNode.getAttribute('w:val'));
 
-                    if (bNode) {
-                        hasExplicitBold = true;
-                        isExplicitlyBold = checkOnOffLocal(bNode.getAttribute('w:val'));
-                    }
-                    if (bCsNode) {
-                        hasExplicitBold = true;
-                        isExplicitlyBold = checkOnOffLocal(bCsNode.getAttribute('w:val'));
-                    }
-
-                    if (hasExplicitBold) {
-                        runIsBold = isExplicitlyBold;
-                    }
+                    let isThaiRun = /[ก-๙]/.test(runText);
+                    let runIsBold = isThaiRun ? runIsBoldCs : runIsBoldAscii;
 
                     totalTextLength += runText.trim().length;
                     if (runIsBold) boldTextLength += runText.trim().length;
