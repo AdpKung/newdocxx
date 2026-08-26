@@ -199,7 +199,15 @@ function checkDocx(buffer) {
                 b = true;
             }
 
-            return { sizes: Array.from(sizesInP), isBold: b, isCenter: center };
+            return { 
+                sizes: Array.from(sizesInP), 
+                isBold: b, 
+                isCenter: center,
+                totalLen: totalTextLength,
+                boldLen: boldTextLength,
+                styleId: pStyleId,
+                defaultPBold: defaultPBold
+            };
          }
 
         // 1. Text Extraction & Structural check (Paragraph level)
@@ -401,7 +409,9 @@ function checkDocx(buffer) {
                     if (!fmt.sizes.includes(16) || fmt.sizes.some(s => s !== 16)) {
                         errs.push(`พบขนาด ${fmt.sizes.join(', ')}pt (กรุณาแก้ไขเป็น 16pt ทั้งหมด)`);
                     }
-                    if (fmt.isBold && cleanPText.length > 20) errs.push(`เป็นตัวหนาทั้งย่อหน้า (กรุณาแก้ไขเป็นตัวอักษรธรรมดา ตัวไม่หนา)`);
+                    if (fmt.isBold && cleanPText.length > 20) {
+                        errs.push(`เป็นตัวหนาทั้งย่อหน้า (debug: boldLen=${fmt.boldLen}/${fmt.totalLen}, style=${fmt.styleId}, defaultB=${fmt.defaultPBold})`);
+                    }
                     if (errs.length > 0) {
                         if (formatDetails.length < 15) formatDetails.push(`เนื้อหาทั่วไปขึ้นต้นด้วย "${pText.trim().substring(0,25)}...": ${errs.join(', ')}`);
                         fontSizePass = false;
